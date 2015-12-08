@@ -112,7 +112,8 @@ public:
     Bitrig,
     AIX,
     CUDA,       // NVIDIA CUDA
-    NVCL        // NVIDIA OpenCL
+    NVCL,       // NVIDIA OpenCL
+    KnightOS    // KnightOS (for the z80)
   };
   enum EnvironmentType {
     UnknownEnvironment,
