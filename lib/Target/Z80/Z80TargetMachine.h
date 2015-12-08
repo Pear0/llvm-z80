@@ -33,7 +33,7 @@ namespace llvm {
   public:
     Z80TargetMachine(const Target &T, StringRef TT, StringRef CPU,
       StringRef FS, const TargetOptions &Options, Reloc::Model RM,
-      CodeModel::Model CM, CodeGenOpt::Level OL);
+      CodeModel::Model CM, CodeGenOpt::Level OL, bool isKnightOS);
     virtual const DataLayout *getDataLayout() const { return &DL; }
     virtual const Z80FrameLowering *getFrameLowering() const {
       return &FrameLowering;
