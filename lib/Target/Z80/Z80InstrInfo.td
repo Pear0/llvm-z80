@@ -15,9 +15,9 @@
 // Z80 Instruction Format Definitions.
 //===----------------------------------------------------------------------===//
 
-def IsKnightOS : Predicate<"Subtarget">
-
 include "Z80InstrFormats.td"
+
+def IsKnightOS : Predicate<"Subtarget">;
 
 //===----------------------------------------------------------------------===//
 // Z80 Type Profiles.
