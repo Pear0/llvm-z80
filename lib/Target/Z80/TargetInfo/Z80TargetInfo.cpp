@@ -13,7 +13,9 @@
 using namespace llvm;
 
 Target llvm::TheZ80Target;
+Target llvm::TheZ80KnightOSTarget;
 
 extern "C" void LLVMInitializeZ80TargetInfo() {
   RegisterTarget<Triple::z80> X(TheZ80Target, "z80", "Z80 [development]");
+  RegisterTarget<Triple::z80knight> Y(TheZ80KnightOSTarget, "z80knight", "Z80 KnightOS [development]");
 }

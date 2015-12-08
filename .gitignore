@@ -30,6 +30,8 @@ autoconf/aclocal.m4
 autoconf/autom4te.cache
 compile_commands.json
 
+
+
 #==============================================================================#
 # Directories to ignore (do not add trailing '/'s, they skip symlinks).
 #==============================================================================#
@@ -46,3 +48,6 @@ tools/lldb
 tools/lld
 # Sphinx build tree, if building in-source dir.
 docs/_build
+
+lib/Target/Z80/*.inc
+nbproject/

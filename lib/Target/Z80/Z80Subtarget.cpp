@@ -21,6 +21,10 @@
 using namespace llvm;
 
 Z80Subtarget::Z80Subtarget(const std::string &TT, const std::string &CPU,
-  const std::string &FS)
-  : Z80GenSubtargetInfo(TT, CPU, FS)
-{}
+  const std::string &FS, bool isKnightOS) : 
+  Z80GenSubtargetInfo(TT, CPU, FS),
+  IsKnightOS(isKnightOS) {
+    
+    
+    
+}
