@@ -17,7 +17,8 @@
 
 include "Z80InstrFormats.td"
 
-def IsKnightOS : Predicate<"Subtarget">;
+def IsKnightOS : Predicate<"Subtarget.isKnightOS()">;
+def NotKnightOS : Predicate<"!Subtarget.isKnightOS()">;
 
 //===----------------------------------------------------------------------===//
 // Z80 Type Profiles.
@@ -160,8 +161,10 @@ let Defs = [SP], Uses = [SP] in {
 // Control Flow Instructions.
 //===----------------------------------------------------------------------===//
 let isCall = 1, Uses = [SP] in {
+  
   def CALL : II16<0xCD, (outs), (ins calltarget:$dst, variable_ops),
-    "call\t{$dst}", [(Z80call imm:$dst)]>;
+    !if(IsKnightOS, "kcall({$dst})", "call\t{$dst}"), [(Z80call imm:$dst)]>;
+  
   def RST  : Irst<0xC7, (outs), (ins i16imm:$dst, variable_ops),
     "rst\t$dst", [(Z80call rst:$dst)]>;
 }
