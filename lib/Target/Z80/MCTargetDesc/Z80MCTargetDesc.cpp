@@ -69,9 +69,18 @@ static MCInstPrinter *createZ80MCInstPrinter(const Target &T,
   return 0;
 }
 
+static MCAsmInfo *createZ80MCAsmInfo(const MCRegisterInfo &MRI, StringRef TT) {
+  Triple TheTriple(TT);
+  
+  MCAsmInfo *MAI;
+  MAI = new Z80MCAsmInfo(TT);
+  
+  return MAI;
+}
+
 extern "C" void LLVMInitializeZ80TargetMC() {
   // Register the MC asm info
-  RegisterMCAsmInfo<Z80MCAsmInfo> X(TheZ80Target);
+  RegisterMCAsmInfoFn X(TheZ80Target, createZ80MCAsmInfo);
 
   // Register the MC codegen info
   TargetRegistry::RegisterMCCodeGenInfo(TheZ80Target,
