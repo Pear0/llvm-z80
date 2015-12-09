@@ -163,7 +163,18 @@ let Defs = [SP], Uses = [SP] in {
 let isCall = 1, Uses = [SP] in {
   
   
-  def CALL : II16<0xCD, (outs), (ins calltarget:$dst, variable_ops), !if(IsKnightOS, "kcall({$dst})", "call\t{$dst}"), [(Z80call imm:$dst)]>;
+  def CALL : II16<0xCD, (outs), (ins calltarget:$dst, variable_ops), 
+    !strconcat(
+      !if(IsKnightOS, 
+        "kcall(", 
+        "call\t"
+      ), 
+      "{$dst}", 
+      !if(IsKnightOS, 
+        ")", 
+        ""
+      )
+    ), [(Z80call imm:$dst)]>;
   
   def RST  : Irst<0xC7, (outs), (ins i16imm:$dst, variable_ops), "rst\t$dst", [(Z80call rst:$dst)]>;
 }
