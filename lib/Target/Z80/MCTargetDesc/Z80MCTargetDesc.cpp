@@ -63,9 +63,9 @@ static MCInstPrinter *createZ80MCInstPrinter(const Target &T,
   const MCRegisterInfo &MRI, const MCSubtargetInfo &STI)
 {
   if (SyntaxVariant == 0)
-      new Z80InstPrinter(MAI, MII, MRI);
+      return new Z80InstPrinter(MAI, MII, MRI);
   if (SyntaxVariant == 1)
-      new Z80KnightInstPrinter(MAI, MII, MRI);
+      return new Z80KnightInstPrinter(MAI, MII, MRI);
   return 0;
 }
 

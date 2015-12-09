@@ -17,13 +17,13 @@
 using namespace llvm;
 
 
-enum AsmWriterFlavorTy {
+enum AsmWriterFlavorZ80 {
   // Note: This numbering has to match the GCC assembler dialects for inline
   // asm alternatives to work right.
   Metal = 0, Knight = 1
 };
 
-static cl::opt<AsmWriterFlavorTy>
+static cl::opt<AsmWriterFlavorZ80>
 AsmWriterFlavor("z80-asm-syntax", cl::init(Metal),
   cl::desc("Choose style of code to emit from z80 backend:"),
   cl::values(clEnumValN(Metal,   "metal",   "Emit Metal (bare) z80 assembly"),
@@ -32,5 +32,5 @@ AsmWriterFlavor("z80-asm-syntax", cl::init(Metal),
 
 Z80MCAsmInfo::Z80MCAsmInfo(StringRef TT)
 {
-    AssemblerDialect = AsmWriterFlavor;
+    AssemblerDialect = (AsmWriterFlavor == Knight) ? 1 : 0;
 }

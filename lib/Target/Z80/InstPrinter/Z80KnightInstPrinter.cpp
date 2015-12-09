@@ -1,4 +1,4 @@
-//===-- Z80InstPrinter.cpp - Convert Z80 MCInst to assembly syntax --------===//
+//===-- Z80KnightInstPrinter.cpp - Convert Z80 MCInst to assembly syntax --------===//
 //
 //                     The LLVM Compiler Infrastructure
 //

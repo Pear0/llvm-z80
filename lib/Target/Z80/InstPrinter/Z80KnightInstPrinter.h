@@ -1,4 +1,4 @@
-//= Z80InstPrinter.h - Convert MSP430 Z80 to assembly syntax -------*- C++ -*-//
+//= Z80KnightInstPrinter.h - Convert MSP430 Z80 to assembly syntax -------*- C++ -*-//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -32,7 +32,7 @@ namespace llvm {
     void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
     void printCCOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
     void printXMemOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
-  }; // end class Z80InstPrinter
+  }; // end class Z80KnightInstPrinter
 } // end namespace llvm
 
 #endif
