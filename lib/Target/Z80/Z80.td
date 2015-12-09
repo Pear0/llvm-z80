@@ -40,10 +40,17 @@ def Z80InstrInfo : InstrInfo;
 
 def Z80AsmWriter : AsmWriter {
   string AsmWriterClassName = "InstPrinter";
+  int Variant = 0;
+  bit isMCAsmWriter = 1;
+}
+
+def Z80KnightAsmWriter : AsmWriter {
+  string AsmWriterClassName = "KnightInstPrinter";
+  int Variant = 1;
   bit isMCAsmWriter = 1;
 }
 
 def Z80 : Target {
   let InstructionSet = Z80InstrInfo;
-  let AssemblyWriters = [Z80AsmWriter];
+  let AssemblyWriters = [Z80AsmWriter, Z80KnightAsmWriter];
 }

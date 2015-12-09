@@ -20,7 +20,7 @@
 using namespace llvm;
 
 // Include the auto-generated portion of the assembler writer
-#include "Z80GenAsmWriter.inc"
+#include "Z80GenAsmWriter1.inc"
 
 void Z80KnightInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
   StringRef Annot)
