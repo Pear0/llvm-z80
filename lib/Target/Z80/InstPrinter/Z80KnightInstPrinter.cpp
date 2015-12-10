@@ -20,7 +20,7 @@
 using namespace llvm;
 
 // Include the auto-generated portion of the assembler writer
-#include "Z80GenAsmWriter1.inc"
+#include "Z80GenAsmWriter.inc"
 //#define GET_INSTRINFO_ENUM
 //#include "Z80GenInstrInfo.inc"
 
@@ -32,11 +32,42 @@ void Z80KnightInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
             MI->getNumOperands() == 2 && 
             MI->getOperand(1).isExpr() && 
             MI->getOperand(1).getExpr()->getKind() == MCExpr::SymbolRef) {
+        //Use the Knight macro for ld
         O << "\tkld(";
         printOperand(MI, 0, O);
         O << ", ";
         printOperand(MI, 1, O);
         O << ")";
+    }else if (MI->getOpcode() == Z80::CALL && 
+            MI->getNumOperands() == 1 && 
+            MI->getOperand(0).isExpr() && 
+            MI->getOperand(0).getExpr()->getKind() == MCExpr::SymbolRef) {
+        
+        //Use the Knight macro for call
+        O << "\tkcall(";
+        printOperand(MI, 0, O);
+        O << ")";
+        
+    }else if (MI->getOpcode() == Z80::JP && 
+            MI->getNumOperands() == 1 && 
+            MI->getOperand(0).isExpr() && 
+            MI->getOperand(0).getExpr()->getKind() == MCExpr::SymbolRef) {
+        
+        O << "\tkjp(";
+        printOperand(MI, 0, O);
+        O << ")";
+        
+    }else if (MI->getOpcode() == Z80::JPCC && 
+            MI->getNumOperands() == 2 && 
+            MI->getOperand(1).isExpr() && 
+            MI->getOperand(1).getExpr()->getKind() == MCExpr::SymbolRef) {
+        
+        O << "\tkjp(";
+        printOperand(MI, 0, O);
+        O << ", ";
+        printOperand(MI, 1, O);
+        O << ")";
+        
     }else {
         printInstruction(MI, O);
     }

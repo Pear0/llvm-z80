@@ -164,7 +164,7 @@ let isCall = 1, Uses = [SP] in {
   
   
   def CALL : II16<0xCD, (outs), (ins calltarget:$dst, variable_ops), 
-    "{call\t$dst|kcall($dst)}", [(Z80call imm:$dst)]>;
+    "{call\t$dst}", [(Z80call imm:$dst)]>;
   
   def RST  : Irst<0xC7, (outs), (ins i16imm:$dst, variable_ops), "rst\t$dst", [(Z80call rst:$dst)]>;
 }
