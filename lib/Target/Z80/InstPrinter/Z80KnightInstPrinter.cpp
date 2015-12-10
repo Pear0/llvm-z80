@@ -28,7 +28,10 @@ void Z80KnightInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
   StringRef Annot)
 {
     
-    if (MI->getOpcode() == Z80::LD16ri && MI->getNumOperands() == 2 && MI->getOperand(1)->isExpr() && MI->getOperand(1).getExpr()->getKind() == MCExpr::ExprKind::SymbolRef) {
+    if (MI->getOpcode() == Z80::LD16ri && 
+            MI->getNumOperands() == 2 && 
+            MI->getOperand(1)->isExpr() && 
+            MI->getOperand(1).getExpr()->getKind() == MCExpr::SymbolRef) {
         O << "\tkld(";
         printOperand(MI, 0, O);
         O << ", ";
