@@ -21,8 +21,8 @@ using namespace llvm;
 
 // Include the auto-generated portion of the assembler writer
 #include "Z80GenAsmWriter1.inc"
-#define GET_INSTRINFO_ENUM
-#include "Z80GenInstrInfo.inc"
+//#define GET_INSTRINFO_ENUM
+//#include "Z80GenInstrInfo.inc"
 
 void Z80KnightInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
   StringRef Annot)
