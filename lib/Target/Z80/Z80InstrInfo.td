@@ -145,17 +145,17 @@ let Defs = [A, FLAGS], Uses = [A] in {
 }
 
 let Uses = [SP] in 
-  def ADD16rSP : I<0x39, (outs GR16:$dst), (ins), "add\t{$dst, sp}", []>;
+  def ADD16rSP : I<0x39, (outs GR16:$dst), (ins), "add\t$dst, sp", []>;
 let Defs = [SP] in
-  def LD16SPr  : I<0xF9, (outs), (ins GR16:$src), "ld\t{sp, $src}", []>;
+  def LD16SPr  : I<0xF9, (outs), (ins GR16:$src), "ld\tsp, $src", []>;
 let Defs = [HL, DE], Uses = [HL, DE] in
-  def EX_DE_HL : I<0xEB, (outs), (ins), "ex\t{de, hl}", []>;
+  def EX_DE_HL : I<0xEB, (outs), (ins), "ex\tde, hl", []>;
 
 let Defs = [SP], Uses = [SP] in {
   let mayLoad = 1 in
-    def POP16r  : IRp<0xC1, (outs GR16:$reg), (ins), "pop\t{$reg}", []>;
+    def POP16r  : IRp<0xC1, (outs GR16:$reg), (ins), "pop\t$reg", []>;
   let mayStore = 1 in
-    def PUSH16r : IRp<0xC5, (outs), (ins GR16:$reg), "push\t{$reg}", []>;
+    def PUSH16r : IRp<0xC5, (outs), (ins GR16:$reg), "push\t$reg", []>;
 }
 //===----------------------------------------------------------------------===//
 // Control Flow Instructions.
@@ -164,7 +164,7 @@ let isCall = 1, Uses = [SP] in {
   
   
   def CALL : II16<0xCD, (outs), (ins calltarget:$dst, variable_ops), 
-    "{call\t$dst}", [(Z80call imm:$dst)]>;
+    "call\t$dst", [(Z80call imm:$dst)]>;
   
   def RST  : Irst<0xC7, (outs), (ins i16imm:$dst, variable_ops), "rst\t$dst", [(Z80call rst:$dst)]>;
 }
@@ -175,10 +175,10 @@ def RET : I<0xC9, (outs), (ins), "ret", [(Z80ret)]>;
 let isBranch = 1, isTerminator = 1 in {
   let isBarrier = 1 in
   def JP : II16<0xC3, (outs), (ins brtarget:$dst),
-    "jp\t{$dst}", [(br bb:$dst)]>;
+    "jp\t$dst", [(br bb:$dst)]>;
   let Uses = [FLAGS] in
   def JPCC : IRyI16<0xC2, (outs), (ins brtarget:$dst, cc:$Ry),
-    "jp\t{$Ry, $dst}", [(Z80brcc bb:$dst, imm:$Ry)]>;
+    "jp\t$Ry, $dst", [(Z80brcc bb:$dst, imm:$Ry)]>;
 }
 
 //===----------------------------------------------------------------------===//
@@ -341,33 +341,33 @@ let Defs = [FLAGS] in {
 let Uses = [HL], Defs = [HL, FLAGS] in {
   let isCommutable = 1 in {
     def ADD16r : IRp<0x09, (outs), (ins GR16:$src),
-      "add\t{hl, $src}", [(set HL, (add HL, GR16:$src))]>;
+      "add\thl, $src", [(set HL, (add HL, GR16:$src))]>;
     let Uses = [HL, FLAGS] in
     def ADC16r : IRp<0x4A, (outs), (ins GR16:$src),
-      "adc\t{hl, $src}", [(set HL, (adde HL, GR16:$src))]>, ED;
+      "adc\thl, $src", [(set HL, (adde HL, GR16:$src))]>, ED;
   }
   let Uses = [HL, FLAGS] in
   def SBC16r : IRp<0x42, (outs), (ins GR16:$src),
-    "sbc\t{hl, $src}", [(set HL, (sube HL, GR16:$src))]>, ED;
+    "sbc\thl, $src", [(set HL, (sube HL, GR16:$src))]>, ED;
 }
 
 let Constraints = "$src = $dst" in {
   let Defs = [FLAGS] in {
     def INC8r : IRy<0x04, (outs GR8:$dst), (ins GR8:$src),
-      "inc\t{$src}", [(set GR8:$dst, (add GR8:$src, 1))]>;
+      "inc\t$src", [(set GR8:$dst, (add GR8:$src, 1))]>;
     def DEC8r : IRy<0x05, (outs GR8:$dst), (ins GR8:$src),
-      "dec\t{$src}", [(set GR8:$dst, (add GR8:$src, -1))]>;
+      "dec\t$src", [(set GR8:$dst, (add GR8:$src, -1))]>;
     let Constraints = "" in {
       def INC8xm : II8<0x34, (outs), (ins xmem:$Imm),
-        "inc\t{($Imm)}", [(store (add (i8 (load xaddr:$Imm)), 1), xaddr:$Imm)]>;
+        "inc\t($Imm)", [(store (add (i8 (load xaddr:$Imm)), 1), xaddr:$Imm)]>;
       def DEC8xm : II8<0x35, (outs), (ins xmem:$Imm),
-        "dec\t{($Imm)}", [(store (add (i8 (load xaddr:$Imm)), -1), xaddr:$Imm)]>;
+        "dec\t($Imm)", [(store (add (i8 (load xaddr:$Imm)), -1), xaddr:$Imm)]>;
     }
   }
   def INC16r : IRp<0x03, (outs GR16:$dst), (ins GR16:$src),
-    "inc\t{$src}", [(set GR16:$dst, (add GR16:$src, 1))]>;
+    "inc\t$src", [(set GR16:$dst, (add GR16:$src, 1))]>;
   def DEC16r : IRp<0x0B, (outs GR16:$dst), (ins GR16:$src),
-    "dec\t{$src}", [(set GR16:$dst, (add GR16:$src, -1))]>;
+    "dec\t$src", [(set GR16:$dst, (add GR16:$src, -1))]>;
 }
 
 //===----------------------------------------------------------------------===//
