@@ -186,47 +186,49 @@ let isBranch = 1, isTerminator = 1 in {
 //===----------------------------------------------------------------------===//
 let neverHasSideEffects = 1 in
 def LD8rr : IRyRz<0x40, (outs GR8:$dst), (ins GR8:$src),
-  "ld\t{$dst, $src}", []>;
+  "ld\t$dst, $src", []>;
 
 let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
   def LD8ri  : IRyI8<0x06,  (outs GR8:$dst),  (ins i8imm:$src),
-    "ld\t{$dst, $src}", [(set GR8:$dst, imm:$src)]>;
-  def LD16ri : IRpI16<0x01, (outs GR16:$dst), (ins i16imm:$src), "ld\t{$dst, $src}", [(set GR16:$dst, imm:$src)]>;
+    "ld\t$dst, $src", [(set GR8:$dst, imm:$src)]>;
+  //Special case of this for Knight variant hard coded in Z80KnightInstPrinter
+  def LD16ri : IRpI16<0x01, (outs GR16:$dst), (ins i16imm:$src), 
+    "ld\t$dst, $src", [(set GR16:$dst, imm:$src)]>;
 }
 
 let canFoldAsLoad = 1, isReMaterializable = 1 in {
   let Defs = [A] in
   def LD8Am : II16<0x3A, (outs), (ins i16imm:$src),
-    "ld\t{a, ($src)}", [(set A, (load iaddr:$src))]>;
+    "ld\ta, ($src)", [(set A, (load iaddr:$src))]>;
   let Uses = [HL] in
   def LD8rHL : IRy<0x46, (outs GR8:$dst), (ins),
-    "ld\t{$dst, (hl)}", [(set GR8:$dst, (load HL))]>;
+    "ld\t$dst, (hl)", [(set GR8:$dst, (load HL))]>;
   def LD16rm : IRpI16<0x4B, (outs GR16:$Rp), (ins i16imm:$Imm),
-    "ld\t{$Rp, ($Imm)}", [(set GR16:$Rp, (load iaddr:$Imm))]>, ED;
+    "ld\t$Rp, ($Imm)", [(set GR16:$Rp, (load iaddr:$Imm))]>, ED;
   def LD16rxm : PseudoI<(outs BR16:$dst), (ins xmem:$src),
     [(set BR16:$dst, (load xaddr:$src))]>;
   def LD8rxm : IRyI8<0x46, (outs GR8:$dst), (ins xmem:$src),
-    "ld\t{$dst, ($src)}", [(set GR8:$dst, (load xaddr:$src))]>;
+    "ld\t$dst, ($src)", [(set GR8:$dst, (load xaddr:$src))]>;
 }
 let Uses = [A] in
 def LD8mA : II16<0x32, (outs), (ins i16imm:$dst),
-  "ld\t{($dst), a}", [(store A, iaddr:$dst)]>;
+  "ld\t($dst), a", [(store A, iaddr:$dst)]>;
 let Uses = [HL] in {
   def LD8HLr : IRz<0x70, (outs), (ins GR8:$src),
-    "ld\t{(hl), $src}", [(store GR8:$src, HL)]>;
+    "ld\t(hl), $src", [(store GR8:$src, HL)]>;
   def LD8HLi : II8<0x36, (outs), (ins i8imm:$src),
-    "ld\t{(hl), $src}", [(store (i8 imm:$src), HL)]>;
+    "ld\t(hl), $src", [(store (i8 imm:$src), HL)]>;
 }
 def LD16mr : IRpI16<0x43, (outs), (ins i16imm:$Imm, GR16:$Rp),
-  "ld\t{($Imm), $Rp}", [(store GR16:$Rp, iaddr:$Imm)]>, ED;
+  "ld\t($Imm), $Rp", [(store GR16:$Rp, iaddr:$Imm)]>, ED;
 def LD16xmr : PseudoI<(outs), (ins xmem:$dst, BR16:$src),
   [(store BR16:$src, xaddr:$dst)]>;
 def LD16xmi : PseudoI<(outs), (ins xmem:$dst, i16imm:$src),
   [(store (i16 imm:$src), xaddr:$dst)]>;
 def LD8xmr : II8Rz<0x70, (outs), (ins xmem:$dst, GR8:$Rz),
-  "ld\t{($dst), $Rz}", [(store GR8:$Rz, xaddr:$dst)]>;
+  "ld\t($dst), $Rz", [(store GR8:$Rz, xaddr:$dst)]>;
 def LD8xmi : II8I8<0x36, (outs), (ins xmem:$dst, i8imm:$Imm2),
-  "ld\t{($dst), $Imm2}", [(store (i8 imm:$Imm2), xaddr:$dst)]>;
+  "ld\t($dst), $Imm2", [(store (i8 imm:$Imm2), xaddr:$dst)]>;
 //===----------------------------------------------------------------------===//
 // Arithmetic Instructions
 //===----------------------------------------------------------------------===//

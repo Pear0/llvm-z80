@@ -35,7 +35,7 @@ void Z80KnightInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
         O << "\tkld(";
         printOperand(MI, 0, O);
         O << ", ";
-        printOperand(MI, 0, O);
+        printOperand(MI, 1, O);
         O << ")";
     }else {
         printInstruction(MI, O);
