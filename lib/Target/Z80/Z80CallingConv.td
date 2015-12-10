@@ -20,7 +20,16 @@ def RetCC_Z80 : CallingConv<[
   CCIfType<[i8], CCAssignToReg<[A]>>,
 
   // i16 are returned in register HL
-  CCIfType<[i16], CCAssignToReg<[HL]>>
+  CCIfType<[i16], CCAssignToReg<[HL]>>,
+
+  // i32 are thrown on the stack
+  CCIfType<[i32], CCAssignToStack<4, 1>>,
+  
+  // f32 are thrown on the stack
+  CCIfType<[f32], CCAssignToStack<4, 1>>,
+
+  // f64 are thrown on the stack
+  CCIfType<[f64], CCAssignToStack<8, 1>>
 ]>;
 
 //===----------------------------------------------------------------------===//
@@ -38,7 +47,16 @@ def CC_Z80 : CallingConv<[
   CCIfType<[i16], CCAssignToReg<[HL]>>,
 
   // Assign other i16 arguments to stack slots
-  CCIfType<[i16], CCAssignToStack<2, 1>>
+  CCIfType<[i16], CCAssignToStack<2, 1>>,
+
+  // i32 are thrown on the stack
+  CCIfType<[i32], CCAssignToStack<4, 1>>,
+  
+  // f32 are thrown on the stack
+  CCIfType<[f32], CCAssignToStack<4, 1>>,
+
+  // f64 are thrown on the stack
+  CCIfType<[f64], CCAssignToStack<8, 1>>
 ]>;
 
 //===----------------------------------------------------------------------===//
