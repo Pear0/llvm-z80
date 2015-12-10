@@ -29,7 +29,6 @@ void Z80KnightInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
 {
     
     if (MI->getOpcode() == Z80::LD16ri && 
-            MI->getNumOperands() == 2 && 
             MI->getOperand(1).isExpr() && 
             MI->getOperand(1).getExpr()->getKind() == MCExpr::SymbolRef) {
         //Use the Knight macro for ld
@@ -39,7 +38,6 @@ void Z80KnightInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
         printOperand(MI, 1, O);
         O << ")";
     }else if (MI->getOpcode() == Z80::CALL && 
-            MI->getNumOperands() == 1 && 
             MI->getOperand(0).isExpr() && 
             MI->getOperand(0).getExpr()->getKind() == MCExpr::SymbolRef) {
         
@@ -49,7 +47,6 @@ void Z80KnightInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
         O << ")";
         
     }else if (MI->getOpcode() == Z80::JP && 
-            MI->getNumOperands() == 1 && 
             MI->getOperand(0).isExpr() && 
             MI->getOperand(0).getExpr()->getKind() == MCExpr::SymbolRef) {
         
@@ -58,7 +55,6 @@ void Z80KnightInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
         O << ")";
         
     }else if (MI->getOpcode() == Z80::JPCC && 
-            MI->getNumOperands() == 2 && 
             MI->getOperand(1).isExpr() && 
             MI->getOperand(1).getExpr()->getKind() == MCExpr::SymbolRef) {
         
