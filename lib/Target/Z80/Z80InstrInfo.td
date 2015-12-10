@@ -192,7 +192,7 @@ let isReMaterializable = 1, isAsCheapAsAMove = 1 in {
   def LD8ri  : IRyI8<0x06,  (outs GR8:$dst),  (ins i8imm:$src),
     "ld\t{$dst, $src}", [(set GR8:$dst, imm:$src)]>;
   def LD16ri : IRpI16<0x01, (outs GR16:$dst), (ins i16imm:$src),
-    !if(!eq($src.OperandType, "OPERAND_IMMEDIATE"), "{ld\t$dst, $src|kcall($dst, $src)}", "ld\t$dst, $src"), [(set GR16:$dst, imm:$src)]>;
+    !if(!eq($src.OperandType, "OPERAND_IMMEDIATE"), "{ld\t$dst, $src|kcall($dst, $src)}", "ld\t{$dst, $src|$dst, $src}"), [(set GR16:$dst, imm:$src)]>;
 }
 
 let canFoldAsLoad = 1, isReMaterializable = 1 in {
