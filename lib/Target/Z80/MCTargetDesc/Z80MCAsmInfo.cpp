@@ -33,4 +33,19 @@ AsmWriterFlavor("z80-asm-syntax", cl::init(Metal),
 Z80MCAsmInfo::Z80MCAsmInfo(StringRef TT)
 {
     AssemblerDialect = (AsmWriterFlavor == Knight) ? 1 : 0;
+    
+    PointerSize = 2;
+    CalleeSaveStackSlotSize = 2;
+    
+    SeparatorString = "\\";
+    CommentString = ";";
+    GlobalPrefix = "C_";
+    ZeroDirective = "\t.block\t";
+    AscizDirective = "\t.asciiz\t"; //Note: asciiz not asciz 
+    
+    //SASS assembler uses db and dw in place of byte and short
+    Data8bitsDirective = "\t.db\t";
+    Data16bitsDirective = "\t.dw\t";
+    Data32bitsDirective = NULL;
+    Data64bitsDirective = NULL;
 }
