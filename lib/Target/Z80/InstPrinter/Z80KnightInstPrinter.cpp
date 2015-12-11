@@ -55,13 +55,13 @@ void Z80KnightInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
         O << ")";
         
     }else if (MI->getOpcode() == Z80::JPCC && 
-            MI->getOperand(1).isExpr() && 
-            MI->getOperand(1).getExpr()->getKind() == MCExpr::SymbolRef) {
+            MI->getOperand(0).isExpr() && 
+            MI->getOperand(0).getExpr()->getKind() == MCExpr::SymbolRef) {
         
         O << "\tkjp(";
-        printOperand(MI, 0, O);
+        printCCOperand(MI, 1, O); 
         O << ", ";
-        printOperand(MI, 1, O);
+        printOperand(MI, 0, O);
         O << ")";
         
     }else {
