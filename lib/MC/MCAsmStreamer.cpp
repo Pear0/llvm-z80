@@ -668,7 +668,22 @@ void MCAsmStreamer::EmitValueImpl(const MCExpr *Value, unsigned Size) {
   default: break;
   case 1: Directive = MAI->getData8bitsDirective();  break;
   case 2: Directive = MAI->getData16bitsDirective(); break;
-  case 4: Directive = MAI->getData32bitsDirective(); break;
+  case 4:
+    //Don't know if this is a good idea, but I don't see a reason why not
+    Directive = MAI->getData32bitsDirective();
+    // If the target doesn't support 32-bit data, emit as two 16-bit halves.
+    if (Directive) break;
+    int32_t IntValue;
+    if (!Value->EvaluateAsAbsolute(IntValue))
+      report_fatal_error("Don't know how to emit this value.");
+    if (MAI->isLittleEndian()) {
+      EmitIntValue((uint16_t)(IntValue >> 0 ), 2);
+      EmitIntValue((uint16_t)(IntValue >> 16), 2);
+    } else {
+      EmitIntValue((uint16_t)(IntValue >> 16), 2);
+      EmitIntValue((uint16_t)(IntValue >> 0 ), 2);
+    }
+    return;
   case 8:
     Directive = MAI->getData64bitsDirective();
     // If the target doesn't support 64-bit data, emit as two 32-bit halves.

@@ -109,4 +109,7 @@ extern "C" void LLVMInitializeZ80TargetMC() {
   // Register the MCAsmBackend
   TargetRegistry::RegisterMCAsmBackend(TheZ80Target,
     createZ80AsmBackend);
+  
+  //TargetRegistry::RegisterAsmStreamer(TheZ80Target, createZ80AsmStreamer)
+  
 }
