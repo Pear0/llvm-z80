@@ -26,7 +26,7 @@ Z80TargetMachine::Z80TargetMachine(const Target &T, StringRef TT, StringRef CPU,
   StringRef FS, const TargetOptions &Options, Reloc::Model RM,
   CodeModel::Model CM, CodeGenOpt::Level OL, bool isKnightOS)
   : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
-  DL("e-p:16:8:8-i8:8:8-i16:8:8-n8:16"),
+  DL("e-p:16:8:8-i8:8:8-i16:8:8-i32:8:8-i64:8:8-f32:8:8-f64:8:8-n8:16"),
   FrameLowering(*this), InstrInfo(*this), TSInfo(*this),
   Subtarget(TT, CPU, FS, isKnightOS), TLInfo(*this)
 {
