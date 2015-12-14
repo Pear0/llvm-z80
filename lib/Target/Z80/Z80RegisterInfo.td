@@ -104,7 +104,7 @@ def PC : Z80Reg<"pc">;
 
 //32 bit composite registers
 def C32A : Z80Reg32WithSubRegs<"bcde", 0, [BC, DE], 2>;
-def C32B : Z80Reg32WithSubRegs<"hlix", 0, [HL, IX], 2>;
+def C32B : Z80Reg32WithSubRegs<"hlix", 0, [HL, IX], 3>;
 
 //64 bit composite register
 def C64 : Z80Reg64WithSubRegs<"bcdehlix", 0, [C32A, C32B], 4>;

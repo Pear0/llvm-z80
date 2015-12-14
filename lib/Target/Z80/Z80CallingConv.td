@@ -19,23 +19,21 @@ def RetCC_Z80 : CallingConv<[
   // i8 are returned in register A
   CCIfType<[i8], CCAssignToReg<[A]>>,
   
-  // Throw other i8 arguments onto the stack
-  CCIfType<[i8], CCAssignToStack<1, 1>>,
-  
   // i16 are returned in register HL
   CCIfType<[i16], CCAssignToReg<[HL]>>,
   
-  // Throw other i8 arguments onto the stack
-  CCIfType<[i16], CCAssignToStack<2, 1>>,
+  // i32 are returned in register C32A
+  CCIfType<[i32], CCAssignToReg<[C32A]>>,
   
-  // i32 are thrown on the stack
-  CCIfType<[i32], CCAssignToStack<4, 1>>,
+  // f32 are returned in register C32A
+  CCIfType<[f32], CCAssignToReg<[C32A]>>,
   
-  // f32 are thrown on the stack
-  CCIfType<[f32], CCAssignToStack<4, 1>>,
-
-  // f64 are thrown on the stack
-  CCIfType<[f64], CCAssignToStack<8, 1>>
+  // i64 are returned in register C64
+  CCIfType<[i64], CCAssignToReg<[C64]>>,
+  
+  // f64 are returned in register C64
+  CCIfType<[f64], CCAssignToReg<[C64]>>,
+  
 ]>;
 
 //===----------------------------------------------------------------------===//
@@ -43,26 +41,30 @@ def RetCC_Z80 : CallingConv<[
 //===----------------------------------------------------------------------===//
 
 def CC_Z80 : CallingConv<[
-  // Assign i8 arguments in registers
+  // Assign i8 arguments in registers then stack slots
   CCIfType<[i8], CCAssignToReg<[A, H, L]>>,
-
-  // Assign other i8 arguments to stack slots
   CCIfType<[i8], CCAssignToStack<1, 1>>,
 
-  // Assign i16 arguments in registers
+  // Assign i16 arguments in registers then stack slots
   CCIfType<[i16], CCAssignToReg<[HL]>>,
-
-  // Assign other i16 arguments to stack slots
   CCIfType<[i16], CCAssignToStack<2, 1>>,
-
-  // i32 are thrown on the stack
+  
+  // Assign i32 arguments in registers then stack slots
+  CCIfType<[i32], CCAssignToReg<[C32A]>>,
   CCIfType<[i32], CCAssignToStack<4, 1>>,
   
-  // f32 are thrown on the stack
+  // Assign f32 arguments in registers then stack slots
+  CCIfType<[f32], CCAssignToReg<[C32A]>>,
   CCIfType<[f32], CCAssignToStack<4, 1>>,
-
-  // f64 are thrown on the stack
+  
+  // Assign i64 arguments in registers then stack slots
+  CCIfType<[i64], CCAssignToReg<[C64]>>,
+  CCIfType<[i64], CCAssignToStack<8, 1>>,
+  
+  // Assign f64 arguments in registers then stack slots
+  CCIfType<[f64], CCAssignToReg<[C64]>>,
   CCIfType<[f64], CCAssignToStack<8, 1>>
+  
 ]>;
 
 //===----------------------------------------------------------------------===//
