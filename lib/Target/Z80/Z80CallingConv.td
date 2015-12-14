@@ -32,7 +32,7 @@ def RetCC_Z80 : CallingConv<[
   CCIfType<[i64], CCAssignToReg<[C64]>>,
   
   // f64 are returned in register C64
-  CCIfType<[f64], CCAssignToReg<[C64]>>,
+  CCIfType<[f64], CCAssignToReg<[C64]>>
   
 ]>;
 
