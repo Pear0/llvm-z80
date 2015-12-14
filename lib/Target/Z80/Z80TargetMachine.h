@@ -61,17 +61,6 @@ namespace llvm {
                          Reloc::Model RM, CodeModel::Model CM,
                          CodeGenOpt::Level OL);
   };
-
-  
-  class Z80KnightOSTargetMachine : public Z80TargetMachine {
-    virtual void anchor();
-  public:
-    Z80KnightOSTargetMachine(const Target &T, StringRef TT,
-                         StringRef CPU, StringRef FS,
-                         const TargetOptions &Options,
-                         Reloc::Model RM, CodeModel::Model CM,
-                         CodeGenOpt::Level OL);
-  };
   
   
 } // end namespace llvm

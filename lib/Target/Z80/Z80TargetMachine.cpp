@@ -28,7 +28,7 @@ Z80TargetMachine::Z80TargetMachine(const Target &T, StringRef TT, StringRef CPU,
   : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
   DL("e-p:16:8:8-i8:8:8-i16:8:8-i32:8:8-i64:8:8-f32:8:8-f64:8:8-n8:16"),
   FrameLowering(*this), InstrInfo(*this), TSInfo(*this),
-  Subtarget(TT, CPU, FS, isKnightOS), TLInfo(*this)
+  Subtarget(TT, CPU, FS), TLInfo(*this)
 {
   initAsmInfo();
 }
@@ -66,14 +66,3 @@ Z80MetalTargetMachine::Z80MetalTargetMachine(const Target &T,
   : Z80TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, false) {
 }
 
-void Z80KnightOSTargetMachine::anchor() { }
-
-Z80KnightOSTargetMachine::Z80KnightOSTargetMachine(const Target &T,
-                                           StringRef TT,  StringRef CPU,
-                                           StringRef FS,
-                                           const TargetOptions &Options,
-                                           Reloc::Model RM,
-                                           CodeModel::Model CM,
-                                           CodeGenOpt::Level OL)
-  : Z80TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, true) {
-}
