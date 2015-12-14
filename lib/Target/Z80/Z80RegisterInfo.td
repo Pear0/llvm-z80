@@ -32,6 +32,28 @@ class Z80RegWithSubRegs<string n, bits<16> Enc = 0, list<Register> subregs = [],
   let CoveredBySubRegs = 1;
 }
 
+//32 bit
+def subreg32_hi : Z80SubRegIndex<16, 16>;
+def subreg32_lo : Z80SubRegIndex<16, 0>;
+
+class Z80Reg32WithSubRegs<string n, bits<16> Enc = 0, list<Register> subregs = [], int Cost = 0>
+  : Z80Reg<n, Enc, Cost> {
+  let SubRegs = subregs;
+  let SubRegIndices = [subreg32_hi, subreg32_lo];
+  let CoveredBySubRegs = 1;
+}
+
+//64 bit
+def subreg64_hi : Z80SubRegIndex<32, 32>;
+def subreg64_lo : Z80SubRegIndex<32, 0>;
+
+class Z80Reg64WithSubRegs<string n, bits<16> Enc = 0, list<Register> subregs = [], int Cost = 0>
+  : Z80Reg<n, Enc, Cost> {
+  let SubRegs = subregs;
+  let SubRegIndices = [subreg64_hi, subreg64_lo];
+  let CoveredBySubRegs = 1;
+}
+
 class Z80Reg8Class<dag reglist>
   : RegisterClass<"Z80", [i8], 8, reglist> {
 }
@@ -41,9 +63,13 @@ class Z80Reg16Class<dag reglist>
 }
 
 
-//class Z80Reg32Class<dag reglist>
-//  : RegisterClass<"Z80", [i32, f32], 8, reglist> {
-//}
+class Z80Reg32Class<dag reglist>
+  : RegisterClass<"Z80", [i32, f32], 8, reglist> {
+}
+
+class Z80Reg64Class<dag reglist>
+  : RegisterClass<"Z80", [i64, f64], 8, reglist> {
+}
 
 //===----------------------------------------------------------------------===//
 //  Registers
@@ -73,13 +99,24 @@ def AF : Z80RegWithSubRegs<"af", 3, [A, FLAGS]>;
 def IX : Z80RegWithSubRegs<"ix", 2, [XH, XL], 1>;
 def IY : Z80RegWithSubRegs<"iy", 2, [YH, YL], 1>;
 
-
 def SP : Z80Reg<"sp">;
 def PC : Z80Reg<"pc">;
 
+//32 bit composite registers
+def C32A : Z80Reg32WithSubRegs<"bcde", 0, [BC, DE], 2>;
+def C32B : Z80Reg32WithSubRegs<"hlix", 0, [HL, IX], 2>;
+
+//64 bit composite register
+def C64 : Z80Reg64WithSubRegs<"bcdehlix", 0, [C32A, C32B], 4>;
+
+//Register classes
 def GR8  : Z80Reg8Class<(add A, B, C, D, E, H, L)>;
 def GR16 : Z80Reg16Class<(add BC, DE, HL, IX, IY)>;
 def BR16 : Z80Reg16Class<(add BC, DE, HL)>;
 def IR16 : Z80Reg16Class<(add IX, IY)>;
 
 def EXR16 : Z80Reg16Class<(add HL, DE)>;
+
+//Composite register classes
+def GR32 : Z80Reg32Class<(add C32A, C32B)>;
+def GR64 : Z80Reg64Class<(add C64)>;

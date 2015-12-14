@@ -31,8 +31,8 @@ typedef enum {
 
 static cl::opt<FrameUseRegister>
 FrameRegister("z80-frame-register",
-  cl::desc("Frame register (IX by default)"),
-  cl::init(IX),
+  cl::desc("Frame register (IY by default)"),
+  cl::init(IY),
   cl::values(
     clEnumValN(IX, "ix", "IX register"),
     clEnumValN(IY, "iy", "IY register"),
