@@ -40,13 +40,10 @@ class Z80Reg16Class<dag reglist>
   : RegisterClass<"Z80", [i16], 8, reglist> {
 }
 
-class Z80Reg16Class<dag reglist>
-  : RegisterClass<"Z80", [i16], 8, reglist> {
-}
 
-class Z80Reg32Class<dag reglist>
-  : RegisterClass<"Z80", [i32, f32], 8, reglist> {
-}
+//class Z80Reg32Class<dag reglist>
+//  : RegisterClass<"Z80", [i32, f32], 8, reglist> {
+//}
 
 //===----------------------------------------------------------------------===//
 //  Registers
