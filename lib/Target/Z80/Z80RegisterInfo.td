@@ -22,13 +22,13 @@ class Z80SubRegIndex<int size, int offset = 0> : SubRegIndex<size, offset> {
   let Namespace = "Z80";
 }
 
-def subreg_hi : Z80SubRegIndex<8, 8>;
-def subreg_lo : Z80SubRegIndex<8, 0>;
+def subreg16_hi : Z80SubRegIndex<8, 8>;
+def subreg16_lo : Z80SubRegIndex<8, 0>;
 
 class Z80RegWithSubRegs<string n, bits<16> Enc = 0, list<Register> subregs = [], int Cost = 0>
   : Z80Reg<n, Enc, Cost> {
   let SubRegs = subregs;
-  let SubRegIndices = [subreg_hi, subreg_lo];
+  let SubRegIndices = [subreg16_hi, subreg16_lo];
   let CoveredBySubRegs = 1;
 }
 
@@ -38,6 +38,14 @@ class Z80Reg8Class<dag reglist>
 
 class Z80Reg16Class<dag reglist>
   : RegisterClass<"Z80", [i16], 8, reglist> {
+}
+
+class Z80Reg16Class<dag reglist>
+  : RegisterClass<"Z80", [i16], 8, reglist> {
+}
+
+class Z80Reg32Class<dag reglist>
+  : RegisterClass<"Z80", [i32, f32], 8, reglist> {
 }
 
 //===----------------------------------------------------------------------===//
@@ -67,6 +75,7 @@ def HL : Z80RegWithSubRegs<"hl", 2, [H, L]>;
 def AF : Z80RegWithSubRegs<"af", 3, [A, FLAGS]>;
 def IX : Z80RegWithSubRegs<"ix", 2, [XH, XL], 1>;
 def IY : Z80RegWithSubRegs<"iy", 2, [YH, YL], 1>;
+
 
 def SP : Z80Reg<"sp">;
 def PC : Z80Reg<"pc">;
