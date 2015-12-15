@@ -19,7 +19,6 @@ using namespace llvm;
 
 extern "C" void LLVMInitializeZ80Target() {
   RegisterTargetMachine<Z80MetalTargetMachine> X(TheZ80Target);
-  RegisterTargetMachine<Z80KnightOSTargetMachine> Y(TheZ80KnightOSTarget);
 }
 
 Z80TargetMachine::Z80TargetMachine(const Target &T, StringRef TT, StringRef CPU,
