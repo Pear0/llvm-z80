@@ -120,5 +120,5 @@ def IR16 : Z80Reg16Class<(add IX, IY)>;
 def EXR16 : Z80Reg16Class<(add HL, DE)>;
 
 //Composite register classes
-def GRi32 : RegisterClass<"Z80", [i32, f32], 8, (add C32A, C32B)>;
-def GRi64 : RegisterClass<"Z80", [i64, f64], 8, (add C64)>;
+def GR32 : RegisterClass<"Z80", [i32, f32], 8, (add C32A, C32B)>;
+def GR64 : RegisterClass<"Z80", [i64, f64], 8, (add C64)>;
