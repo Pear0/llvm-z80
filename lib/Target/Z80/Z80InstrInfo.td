@@ -104,11 +104,11 @@ def rst : PatLeaf<(i16 imm:$dst), [{
 // Composite Pseudo Instructions
 //===----------------------------------------------------------------------===//
 
-def LD32ri : PseudoI<(outs GRi32:$dst), (ins i32imm:$src), [(set GRi32:$dst, imm:$src)]>;
-def LD64ri : PseudoI<(outs GRi64:$dst), (ins i64imm:$src), [(set GRi64:$dst, imm:$src)]>;
+def LD32ri : PseudoI<(outs GR32:$dst), (ins i32imm:$src), [(set GR32:$dst, i32imm:$src)]>;
+def LD64ri : PseudoI<(outs GR64:$dst), (ins i64imm:$src), [(set GR64:$dst, i64imm:$src)]>;
 
-def LD32fri : PseudoI<(outs GRf32:$dst), (ins f32imm:$src), [(set GRf32:$dst, imm:$src)]>;
-def LD64fri : PseudoI<(outs GRf64:$dst), (ins f64imm:$src), [(set GRf64:$dst, imm:$src)]>;
+def LD32fri : PseudoI<(outs GR32:$dst), (ins f32imm:$src), [(set GR32:$dst, f32imm:$src)]>;
+def LD64fri : PseudoI<(outs GR64:$dst), (ins f64imm:$src), [(set GR64:$dst, f64imm:$src)]>;
 
 //===----------------------------------------------------------------------===//
 // Instruction list.
