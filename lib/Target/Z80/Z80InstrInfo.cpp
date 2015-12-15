@@ -16,6 +16,8 @@
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/IR/Constant.h"
+#include "llvm/IR/Constants.h"
 
 #define GET_INSTRINFO_CTOR
 #include "Z80GenInstrInfo.inc"
@@ -363,8 +365,7 @@ void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
 bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
 {
     switch (MI->getOpcode()) {
-        case Z80::LD32ri:
-        case Z80::LD32fri:
+        case Z80::LD32ri: {
             
             DebugLoc DL = MI->getDebugLoc();
             MachineBasicBlock &MBB = *MI->getParent();
@@ -376,8 +377,8 @@ bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
 
             //
             return true;
-        case Z80::LD64ri:
-        case Z80::LD64fri:
+        }
+        case Z80::LD64ri: {
             
             DebugLoc DL = MI->getDebugLoc();
             MachineBasicBlock &MBB = *MI->getParent();
@@ -391,6 +392,44 @@ bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
             
             //
             return true;
+        }
+        case Z80::LD32fri: {
+            
+            DebugLoc DL = MI->getDebugLoc();
+            MachineBasicBlock &MBB = *MI->getParent();
+            unsigned Dst = MI->getOperand(0).getReg();
+            ConstantFP *ImmFP = MI->getOperand(1).getFPImm();
+            APInt Imm = ImmFP->getValueAPF().bitcastToAPInt();
+            
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 1)).addImm(Imm.getLoBits(16));
+            Imm = Imm.ashr(16);
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 0)).addImm(Imm.getLoBits(16));
+            MBB.erase(MI);
+            
+            //
+            return true;
+        }
+        case Z80::LD64fri: {
+            
+            DebugLoc DL = MI->getDebugLoc();
+            MachineBasicBlock &MBB = *MI->getParent();
+            unsigned Dst = MI->getOperand(0).getReg();
+            ConstantFP *ImmFP = MI->getOperand(1).getFPImm();
+            APInt Imm = ImmFP->getValueAPF().bitcastToAPInt();
+            
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 3)).addImm(Imm.getLoBits(16));
+            Imm = Imm.ashr(16);
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 2)).addImm(Imm.getLoBits(16));
+            Imm = Imm.ashr(16);
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 1)).addImm(Imm.getLoBits(16));
+            Imm = Imm.ashr(16);
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 0)).addImm(Imm.getLoBits(16));
+            
+            MBB.erase(MI);
+            
+            //
+            return true;
+        }
     }
   
     MachineBasicBlock &MBB = *MI->getParent();
