@@ -25,9 +25,18 @@ using namespace llvm;
 Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
   : TargetLowering(TM, new TargetLoweringObjectFileELF())
 {
+  //Proper integer registers
   addRegisterClass(MVT::i8, &Z80::GR8RegClass);
   addRegisterClass(MVT::i16, &Z80::GR16RegClass);
-
+  
+  //Composite integer registers
+  addRegisterClass(MVT::i32, &Z80::GR32RegClass);
+  addRegisterClass(MVT::i64, &Z80::GR64RegClass);
+  
+  //Composite float registers
+  addRegisterClass(MVT::f32, &Z80::GR32RegClass);
+  addRegisterClass(MVT::f64, &Z80::GR64RegClass);
+  
   computeRegisterProperties();
 
   setStackPointerRegisterToSaveRestore(Z80::SP);
@@ -130,6 +139,30 @@ SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
         ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
         InVals.push_back(ArgValue);
         break;
+      case MVT::i32:
+        VReg = MRI.createVirtualRegister(&Z80::GR32RegClass);
+        MRI.addLiveIn(VA.getLocReg(), VReg);
+        ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
+        InVals.push_back(ArgValue);
+        break;
+      case MVT::i64:
+        VReg = MRI.createVirtualRegister(&Z80::GR64RegClass);
+        MRI.addLiveIn(VA.getLocReg(), VReg);
+        ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
+        InVals.push_back(ArgValue);
+        break;
+      case MVT::f32:
+        VReg = MRI.createVirtualRegister(&Z80::GR32RegClass);
+        MRI.addLiveIn(VA.getLocReg(), VReg);
+        ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
+        InVals.push_back(ArgValue);
+        break;
+      case MVT::f64:
+        VReg = MRI.createVirtualRegister(&Z80::GR64RegClass);
+        MRI.addLiveIn(VA.getLocReg(), VReg);
+        ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
+        InVals.push_back(ArgValue);
+        break;
       }
     }
     else
@@ -141,9 +174,9 @@ SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
 
       // Load the argument to a virtual register
       unsigned Size = VA.getLocVT().getStoreSize();
-      if (Size > 2)
-        errs() << "LowerFormalArguments unhandled argument type: "
-        << EVT(VA.getLocVT()).getEVTString() << "\n";
+      //if (Size > 2)
+      //  errs() << "LowerFormalArguments unhandled argument type: "
+      //  << EVT(VA.getLocVT()).getEVTString() << "\n";
       
       // Create the frame index object for this incoming parameter...
       int FI = MFI->CreateFixedObject(Size, VA.getLocMemOffset(), true);
