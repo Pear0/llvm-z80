@@ -107,7 +107,7 @@ def C32A : Z80Reg32WithSubRegs<"bcde", 0, [BC, DE], 2>;
 def C32B : Z80Reg32WithSubRegs<"hlix", 0, [HL, IX], 3>;
 
 //64 bit composite register
-def C64 : Z80Reg64WithSubRegs<"bcdehlix", 0, [C32A, C32B], 4>;
+def C64 : Z80Reg64WithSubRegs<"bcdehlix", 0, [BC, DE, HL, IX], 4>;
 
 //Register classes
 def GR8  : Z80Reg8Class<(add A, B, C, D, E, H, L)>;

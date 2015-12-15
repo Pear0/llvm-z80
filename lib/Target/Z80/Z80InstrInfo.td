@@ -17,8 +17,6 @@
 
 include "Z80InstrFormats.td"
 
-def IsKnightOS : Predicate<"Subtarget.isKnightOS()">;
-def NotKnightOS : Predicate<"!Subtarget.isKnightOS()">;
 
 //===----------------------------------------------------------------------===//
 // Z80 Type Profiles.
@@ -101,6 +99,16 @@ def iaddr : ComplexPattern<iPTR, 1, "SelectIAddr", [], []>;
 def rst : PatLeaf<(i16 imm:$dst), [{
   return (N->getZExtValue() & 0x38) == N->getZExtValue();
 }]>;
+
+//===----------------------------------------------------------------------===//
+// Composite Pseudo Instructions
+//===----------------------------------------------------------------------===//
+
+def LD32ri : PseudoI<(outs GR32:$dst), (ins i32imm:$src), [(set GR32:$dst, imm:$src)]>;
+def LD64ri : PseudoI<(outs GR64:$dst), (ins i64imm:$src), [(set GR64:$dst, imm:$src)]>;
+
+def LD32fri : PseudoI<(outs GR32:$dst), (ins f32imm:$src), [(set GR32:$dst, imm:$src)]>;
+def LD64fri : PseudoI<(outs GR64:$dst), (ins f64imm:$src), [(set GR64:$dst, imm:$src)]>;
 
 //===----------------------------------------------------------------------===//
 // Instruction list.
