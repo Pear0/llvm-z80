@@ -763,6 +763,9 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
   case ISD::FrameIndex:
     return SDValue();
   }
+  
+  outs() << "Lowering Store " << Op.getSimpleValueType().SimpleTy << ":";
+  
   switch(Op.getSimpleValueType().SimpleTy) {
       case MVT::i16: {
         SDValue Lo, Hi;
@@ -802,6 +805,7 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
         SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
+        outs() << "Lowered Store " << Op.getSimpleValueType().SimpleTy << ".";
         return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, 
                 Z80TargetLowering::LowerStore(StoreLow, DAG), 
                 Z80TargetLowering::LowerStore(StoreHigh, DAG));
@@ -842,6 +846,7 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
         
+        outs() << "Lowered Store " << Op.getSimpleValueType().SimpleTy << ".";
         return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, 
                 Z80TargetLowering::LowerStore(StoreLowest, DAG), 
                 Z80TargetLowering::LowerStore(StoreLow, DAG), 
@@ -867,6 +872,8 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
         SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
+        
+        outs() << "Lowered Store " << Op.getSimpleValueType().SimpleTy << ".";
         return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, 
                 Z80TargetLowering::LowerStore(StoreLow, DAG), 
                 Z80TargetLowering::LowerStore(StoreHigh, DAG));
@@ -908,6 +915,7 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
         
+        outs() << "Lowered Store " << Op.getSimpleValueType().SimpleTy << ".";
         return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, 
                 Z80TargetLowering::LowerStore(StoreLowest, DAG), 
                 Z80TargetLowering::LowerStore(StoreLow, DAG), 
