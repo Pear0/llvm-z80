@@ -937,6 +937,8 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
     return SDValue();
   }
   
+  outs() << "Lowering " << Op.getSimpleValueType().SimpleTy << ":";
+  
   switch(Op.getSimpleValueType().SimpleTy) {
       case MVT::i16: {
         SDValue Lo = DAG.getLoad(MVT::i8, dl, Chain, BasePtr,
@@ -956,6 +958,7 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
           MVT::i16, LoRes, Hi);
 
         SDValue Ops[] = { HiRes, NewChain };
+        outs() << "Lowered " << Op.getSimpleValueType().SimpleTy << ":";
         return DAG.getMergeValues(Ops, 2, dl);
       }
       case MVT::i32: {
@@ -976,6 +979,7 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
           MVT::i32, LoRes, Hi);
 
         SDValue Ops[] = { HiRes, NewChain };
+        outs() << "Lowered " << Op.getSimpleValueType().SimpleTy << ":";
         return DAG.getMergeValues(Ops, 2, dl);
       }
       case MVT::i64: {
@@ -1014,6 +1018,7 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
           MVT::i64, HighRes, Highest);
 
         SDValue Ops[] = { HighestRes, NewChain };
+        outs() << "Lowered " << Op.getSimpleValueType().SimpleTy << ":";
         return DAG.getMergeValues(Ops, 2, dl);
       }
       case MVT::f32: {
@@ -1034,6 +1039,7 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
           MVT::f32, LoRes, Hi);
 
         SDValue Ops[] = { HiRes, NewChain };
+        outs() << "Lowered " << Op.getSimpleValueType().SimpleTy << ":";
         return DAG.getMergeValues(Ops, 2, dl);
       }
       case MVT::f64: {
@@ -1072,6 +1078,7 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
           MVT::f64, HighRes, Highest);
 
         SDValue Ops[] = { HighestRes, NewChain };
+        outs() << "Lowered " << Op.getSimpleValueType().SimpleTy << ":";
         return DAG.getMergeValues(Ops, 2, dl);
       }
       default:
