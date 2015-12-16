@@ -763,7 +763,7 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
   case ISD::FrameIndex:
     return SDValue();
   }
-  switch(Op.getSimpleValueType()) {
+  switch(Op.getSimpleValueType().SimpleTy) {
       case MVT::i16: {
         SDValue Lo, Hi;
         if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Value)) {
@@ -925,7 +925,7 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
     return SDValue();
   }
   
-  switch(Op.getSimpleValueType()) {
+  switch(Op.getSimpleValueType().SimpleTy) {
       case MVT::i16: {
         SDValue Lo = DAG.getLoad(MVT::i8, dl, Chain, BasePtr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
