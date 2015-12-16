@@ -802,7 +802,9 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
         SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
-        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLow, StoreHigh);
+        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, 
+                Z80TargetLowering::LowerStore(StoreLow, DAG), 
+                Z80TargetLowering::LowerStore(StoreHigh, DAG));
       }
       case MVT::i64: {
         SDValue Lowest, Low, High, Highest;
@@ -840,7 +842,11 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
         
-        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLowest, StoreLow, StoreHigh, StoreHighest);
+        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, 
+                Z80TargetLowering::LowerStore(StoreLowest, DAG), 
+                Z80TargetLowering::LowerStore(StoreLow, DAG), 
+                Z80TargetLowering::LowerStore(StoreHigh, DAG), 
+                Z80TargetLowering::LowerStore(StoreHighest, DAG));
       }
       case MVT::f32: {
         SDValue Lo, Hi;
@@ -861,7 +867,9 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
         SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
-        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLow, StoreHigh);
+        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, 
+                Z80TargetLowering::LowerStore(StoreLow, DAG), 
+                Z80TargetLowering::LowerStore(StoreHigh, DAG));
       }
       case MVT::f64: {
         SDValue Lowest, Low, High, Highest;
@@ -900,7 +908,11 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
         
-        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLowest, StoreLow, StoreHigh, StoreHighest);
+        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, 
+                Z80TargetLowering::LowerStore(StoreLowest, DAG), 
+                Z80TargetLowering::LowerStore(StoreLow, DAG), 
+                Z80TargetLowering::LowerStore(StoreHigh, DAG), 
+                Z80TargetLowering::LowerStore(StoreHighest, DAG));
       }
       default:
           llvm_unreachable("Unknown MVT for LowerStore");
