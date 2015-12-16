@@ -403,7 +403,7 @@ bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
             
             BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 1)).addImm(Imm.getLoBits(16).getZExtValue());
             Imm = Imm.ashr(16);
-            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 0)).addImm(Imm.getLoBits(16).getZExtValue();
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 0)).addImm(Imm.getLoBits(16).getZExtValue());
             MBB.erase(MI);
             
             //
