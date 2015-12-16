@@ -50,7 +50,20 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
   setTruncStoreAction(MVT::i16, MVT::i8, Expand);
 
   setOperationAction(ISD::LOAD,  MVT::i16, Custom);
+  
+  //Composite Register Loads
+  setOperationAction(ISD::LOAD,  MVT::i32, Custom);
+  setOperationAction(ISD::LOAD,  MVT::i64, Custom);
+  setOperationAction(ISD::LOAD,  MVT::f32, Custom);
+  setOperationAction(ISD::LOAD,  MVT::f64, Custom);
+  
   setOperationAction(ISD::STORE, MVT::i16, Custom);
+  
+  //COmposite Register Stores
+  setOperationAction(ISD::STORE,  MVT::i32, Custom);
+  setOperationAction(ISD::STORE,  MVT::i64, Custom);
+  setOperationAction(ISD::STORE,  MVT::f32, Custom);
+  setOperationAction(ISD::STORE,  MVT::f64, Custom);
 
   setOperationAction(ISD::ZERO_EXTEND, MVT::i16, Custom);
   setOperationAction(ISD::SIGN_EXTEND, MVT::i16, Custom);
