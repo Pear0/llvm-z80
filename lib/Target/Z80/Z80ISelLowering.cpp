@@ -750,25 +750,149 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
   case ISD::FrameIndex:
     return SDValue();
   }
-
-  SDValue Lo, Hi;
-  if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Value)) {
-    Lo = DAG.getConstant(CN->getZExtValue() & 0xFF, MVT::i8);
-    Hi = DAG.getConstant((CN->getZExtValue()>>8) & 0xFF, MVT::i8);
+  switch(Op.getSimpleValueType()) {
+      case MVT::i16: {
+        SDValue Lo, Hi;
+        if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Value)) {
+          Lo = DAG.getConstant(CN->getZExtValue() & 0xFF, MVT::i8);
+          Hi = DAG.getConstant((CN->getZExtValue()>>8) & 0xFF, MVT::i8);
+        }
+        else {
+          Lo = DAG.getTargetExtractSubreg(Z80::subreg_lo, dl, MVT::i8, Value);
+          Hi = DAG.getTargetExtractSubreg(Z80::subreg_hi, dl, MVT::i8, Value);
+        }
+        SDValue StoreLow = DAG.getStore(Chain, dl, Lo, BasePtr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(1, MVT::i16));
+        SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLow, StoreHigh);
+      }
+      case MVT::i32: {
+        SDValue Lo, Hi;
+        if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Value)) {
+          Lo = DAG.getConstant(CN->getZExtValue() & 0xFFFF, MVT::i16);
+          Hi = DAG.getConstant((CN->getZExtValue()>>16) & 0xFFFF, MVT::i16);
+        }
+        else {
+          Lo = DAG.getTargetExtractSubreg(Z80::subreg32_lo, dl, MVT::i16, Value);
+          Hi = DAG.getTargetExtractSubreg(Z80::subreg32_hi, dl, MVT::i16, Value);
+        }
+        SDValue StoreLow = DAG.getStore(Chain, dl, Lo, BasePtr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(2, MVT::i16));
+        SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLow, StoreHigh);
+      }
+      case MVT::i64: {
+        SDValue Lowest, Low, High, Highest;
+        if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Value)) {
+          Lowest = DAG.getConstant(CN->getZExtValue() & 0xFFFF, MVT::i16);
+          Low = DAG.getConstant((CN->getZExtValue()>>16) & 0xFFFF, MVT::i16);
+          High = DAG.getConstant((CN->getZExtValue()>>32) & 0xFFFF, MVT::i16);
+          Highest = DAG.getConstant((CN->getZExtValue()>>48) & 0xFFFF, MVT::i16);
+        }
+        else {
+          Lowest = DAG.getTargetExtractSubreg(Z80::subreg64_lowest, dl, MVT::i16, Value);
+          Low = DAG.getTargetExtractSubreg(Z80::subreg64_low, dl, MVT::i16, Value);
+          High = DAG.getTargetExtractSubreg(Z80::subreg64_high, dl, MVT::i16, Value);
+          Highest = DAG.getTargetExtractSubreg(Z80::subreg64_highest, dl, MVT::i16, Value);
+        }
+        SDValue StoreLowest = DAG.getStore(Chain, dl, Lowest, BasePtr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        
+        SDValue LowAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(2, MVT::i16));
+        SDValue StoreLow = DAG.getStore(Chain, dl, Low, LowAddr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        
+        SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(4, MVT::i16));
+        SDValue StoreHigh = DAG.getStore(Chain, dl, High, HighAddr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        
+        SDValue HighestAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(6, MVT::i16));
+        SDValue StoreHighest = DAG.getStore(Chain, dl, Highest, HighestAddr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        
+        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLowest, StoreLow, StoreHigh, StoreHighest);
+      }
+      case MVT::f32: {
+        SDValue Lo, Hi;
+        if (ConstantFPSDNode *CN = dyn_cast<ConstantFPSDNode>(Value)) {
+          uint64_t val = CN->getValueAPF().bitcastToAPInt().getZExtValue();
+          Lo = DAG.getConstant(val & 0xFFFF, MVT::i16);
+          Hi = DAG.getConstant((val >>16) & 0xFFFF, MVT::i16);
+        }
+        else {
+          Lo = DAG.getTargetExtractSubreg(Z80::subreg32_lo, dl, MVT::i16, Value);
+          Hi = DAG.getTargetExtractSubreg(Z80::subreg32_hi, dl, MVT::i16, Value);
+        }
+        SDValue StoreLow = DAG.getStore(Chain, dl, Lo, BasePtr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(2, MVT::i16));
+        SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLow, StoreHigh);
+      }
+      case MVT::f64: {
+        SDValue Lowest, Low, High, Highest;
+        if (ConstantFPSDNode *CN = dyn_cast<ConstantFPSDNode>(Value)) {
+          uint64_t val = CN->getValueAPF().bitcastToAPInt().getZExtValue();
+          Lowest = DAG.getConstant(val & 0xFFFF, MVT::i16);
+          Low = DAG.getConstant((val>>16) & 0xFFFF, MVT::i16);
+          High = DAG.getConstant((val>>32) & 0xFFFF, MVT::i16);
+          Highest = DAG.getConstant((val>>48) & 0xFFFF, MVT::i16);
+        }
+        else {
+          Lowest = DAG.getTargetExtractSubreg(Z80::subreg64_lowest, dl, MVT::i16, Value);
+          Low = DAG.getTargetExtractSubreg(Z80::subreg64_low, dl, MVT::i16, Value);
+          High = DAG.getTargetExtractSubreg(Z80::subreg64_high, dl, MVT::i16, Value);
+          Highest = DAG.getTargetExtractSubreg(Z80::subreg64_highest, dl, MVT::i16, Value);
+        }
+        SDValue StoreLowest = DAG.getStore(Chain, dl, Lowest, BasePtr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        
+        SDValue LowAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(2, MVT::i16));
+        SDValue StoreLow = DAG.getStore(Chain, dl, Low, LowAddr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        
+        SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(4, MVT::i16));
+        SDValue StoreHigh = DAG.getStore(Chain, dl, High, HighAddr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        
+        SDValue HighestAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(6, MVT::i16));
+        SDValue StoreHighest = DAG.getStore(Chain, dl, Highest, HighestAddr,
+          ST->getPointerInfo(), ST->isVolatile(),
+          ST->isNonTemporal(), ST->getAlignment());
+        
+        return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLowest, StoreLow, StoreHigh, StoreHighest);
+      }
+      default:
+          llvm_unreachable("Unknown MVT for LowerStore");
+          return 0;
   }
-  else {
-    Lo = DAG.getTargetExtractSubreg(Z80::subreg_lo, dl, MVT::i8, Value);
-    Hi = DAG.getTargetExtractSubreg(Z80::subreg_hi, dl, MVT::i8, Value);
-  }
-  SDValue StoreLow = DAG.getStore(Chain, dl, Lo, BasePtr,
-    ST->getPointerInfo(), ST->isVolatile(),
-    ST->isNonTemporal(), ST->getAlignment());
-  SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-    DAG.getConstant(1, MVT::i16));
-  SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
-    ST->getPointerInfo(), ST->isVolatile(),
-    ST->isNonTemporal(), ST->getAlignment());
-  return DAG.getNode(ISD::TokenFactor, dl, MVT::Other, StoreLow, StoreHigh);
 }
 
 SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
@@ -787,24 +911,148 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
   case ISD::FrameIndex:
     return SDValue();
   }
-  SDValue Lo = DAG.getLoad(MVT::i8, dl, Chain, BasePtr,
-    MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-    LD->isInvariant(), LD->getAlignment());
-  SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-    DAG.getConstant(1, MVT::i16));
-  SDValue Hi = DAG.getLoad(MVT::i8, dl, Chain, HighAddr,
-    MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-    LD->isInvariant(), LD->getAlignment());
-  SDValue NewChain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
-    Lo.getValue(1), Hi.getValue(1));
+  
+  switch(Op.getSimpleValueType()) {
+      case MVT::i16: {
+        SDValue Lo = DAG.getLoad(MVT::i8, dl, Chain, BasePtr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(1, MVT::i16));
+        SDValue Hi = DAG.getLoad(MVT::i8, dl, Chain, HighAddr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        SDValue NewChain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
+          Lo.getValue(1), Hi.getValue(1));
 
-  SDValue LoRes = DAG.getTargetInsertSubreg(Z80::subreg_lo, dl,
-    MVT::i16, DAG.getUNDEF(MVT::i16), Lo);
-  SDValue HiRes = DAG.getTargetInsertSubreg(Z80::subreg_hi, dl,
-    MVT::i16, LoRes, Hi);
+        SDValue LoRes = DAG.getTargetInsertSubreg(Z80::subreg_lo, dl,
+          MVT::i16, DAG.getUNDEF(MVT::i16), Lo);
+        SDValue HiRes = DAG.getTargetInsertSubreg(Z80::subreg_hi, dl,
+          MVT::i16, LoRes, Hi);
 
-  SDValue Ops[] = { HiRes, NewChain };
-  return DAG.getMergeValues(Ops, 2, dl);
+        SDValue Ops[] = { HiRes, NewChain };
+        return DAG.getMergeValues(Ops, 2, dl);
+      }
+      case MVT::i32: {
+        SDValue Lo = DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(2, MVT::i16));
+        SDValue Hi = DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        SDValue NewChain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
+          Lo.getValue(1), Hi.getValue(1));
+
+        SDValue LoRes = DAG.getTargetInsertSubreg(Z80::subreg32_lo, dl,
+          MVT::i32, DAG.getUNDEF(MVT::i32), Lo);
+        SDValue HiRes = DAG.getTargetInsertSubreg(Z80::subreg32_hi, dl,
+          MVT::i32, LoRes, Hi);
+
+        SDValue Ops[] = { HiRes, NewChain };
+        return DAG.getMergeValues(Ops, 2, dl);
+      }
+      case MVT::i64: {
+        SDValue Lowest = DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        
+        SDValue LowAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(2, MVT::i16));
+        SDValue Low = DAG.getLoad(MVT::i16, dl, Chain, LowAddr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        
+        SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(4, MVT::i16));
+        SDValue High = DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        
+        SDValue HighestAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(6, MVT::i16));
+        SDValue Highest = DAG.getLoad(MVT::i16, dl, Chain, HighestAddr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        
+        SDValue NewChain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
+          Lowest.getValue(1), Low.getValue(1), High.getValue(1), Highest.getValue(1));
+
+        SDValue LowestRes = DAG.getTargetInsertSubreg(Z80::subreg64_lowest, dl,
+          MVT::i64, DAG.getUNDEF(MVT::i64), Lowest);
+        SDValue LowRes = DAG.getTargetInsertSubreg(Z80::subreg64_low, dl,
+          MVT::i64, LowestRes, Low);
+        SDValue HighRes = DAG.getTargetInsertSubreg(Z80::subreg64_high, dl,
+          MVT::i64, LowRes, High);
+        SDValue HighestRes = DAG.getTargetInsertSubreg(Z80::subreg64_highest, dl,
+          MVT::i64, HighRes, Highest);
+
+        SDValue Ops[] = { HighestRes, NewChain };
+        return DAG.getMergeValues(Ops, 2, dl);
+      }
+      case MVT::f32: {
+        SDValue Lo = DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(2, MVT::i16));
+        SDValue Hi = DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        SDValue NewChain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
+          Lo.getValue(1), Hi.getValue(1));
+
+        SDValue LoRes = DAG.getTargetInsertSubreg(Z80::subreg32_lo, dl,
+          MVT::f32, DAG.getUNDEF(MVT::f32), Lo);
+        SDValue HiRes = DAG.getTargetInsertSubreg(Z80::subreg32_hi, dl,
+          MVT::f32, LoRes, Hi);
+
+        SDValue Ops[] = { HiRes, NewChain };
+        return DAG.getMergeValues(Ops, 2, dl);
+      }
+      case MVT::f64: {
+        SDValue Lowest = DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        
+        SDValue LowAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(2, MVT::i16));
+        SDValue Low = DAG.getLoad(MVT::i16, dl, Chain, LowAddr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        
+        SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(4, MVT::i16));
+        SDValue High = DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        
+        SDValue HighestAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
+          DAG.getConstant(6, MVT::i16));
+        SDValue Highest = DAG.getLoad(MVT::i16, dl, Chain, HighestAddr,
+          MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
+          LD->isInvariant(), LD->getAlignment());
+        
+        SDValue NewChain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
+          Lowest.getValue(1), Low.getValue(1), High.getValue(1), Highest.getValue(1));
+
+        SDValue LowestRes = DAG.getTargetInsertSubreg(Z80::subreg64_lowest, dl,
+          MVT::f64, DAG.getUNDEF(MVT::f64), Lowest);
+        SDValue LowRes = DAG.getTargetInsertSubreg(Z80::subreg64_low, dl,
+          MVT::f64, LowestRes, Low);
+        SDValue HighRes = DAG.getTargetInsertSubreg(Z80::subreg64_high, dl,
+          MVT::f64, LowRes, High);
+        SDValue HighestRes = DAG.getTargetInsertSubreg(Z80::subreg64_highest, dl,
+          MVT::f64, HighRes, Highest);
+
+        SDValue Ops[] = { HighestRes, NewChain };
+        return DAG.getMergeValues(Ops, 2, dl);
+      }
+      default:
+          llvm_unreachable("Unknown MVT for LowerLoad");
+          return 0;
+  }
 }
 
 //===----------------------------------------------------------------------===//

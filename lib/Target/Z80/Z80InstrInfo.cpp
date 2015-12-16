@@ -364,7 +364,7 @@ void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
 
 bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
 {
-    switch (MI->getOpcode()) {
+    /*switch (MI->getOpcode()) {
         case Z80::LD32ri: {
             
             DebugLoc DL = MI->getDebugLoc();
@@ -430,7 +430,7 @@ bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
             //
             return true;
         }
-    }
+    }*/
   
     MachineBasicBlock &MBB = *MI->getParent();
     MachineFunction &MF = *MBB.getParent();
