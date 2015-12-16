@@ -383,7 +383,7 @@ bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
             DebugLoc DL = MI->getDebugLoc();
             MachineBasicBlock &MBB = *MI->getParent();
             unsigned Dst = MI->getOperand(0).getReg();
-            unsigned Imm = MI->getOperand(1).getImm();
+            uint64_t Imm = MI->getOperand(1).getImm();
             BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 3)).addImm( Imm        & 0xffff);
             BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 2)).addImm((Imm >> 16) & 0xffff);
             BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 1)).addImm((Imm >> 32) & 0xffff);
@@ -398,12 +398,12 @@ bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
             DebugLoc DL = MI->getDebugLoc();
             MachineBasicBlock &MBB = *MI->getParent();
             unsigned Dst = MI->getOperand(0).getReg();
-            ConstantFP *ImmFP = MI->getOperand(1).getFPImm();
+            const ConstantFP *ImmFP = MI->getOperand(1).getFPImm();
             APInt Imm = ImmFP->getValueAPF().bitcastToAPInt();
             
-            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 1)).addImm(Imm.getLoBits(16));
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 1)).addImm(Imm.getLoBits(16).getZExtValue());
             Imm = Imm.ashr(16);
-            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 0)).addImm(Imm.getLoBits(16));
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 0)).addImm(Imm.getLoBits(16).getZExtValue();
             MBB.erase(MI);
             
             //
@@ -414,16 +414,16 @@ bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
             DebugLoc DL = MI->getDebugLoc();
             MachineBasicBlock &MBB = *MI->getParent();
             unsigned Dst = MI->getOperand(0).getReg();
-            ConstantFP *ImmFP = MI->getOperand(1).getFPImm();
+            const ConstantFP *ImmFP = MI->getOperand(1).getFPImm();
             APInt Imm = ImmFP->getValueAPF().bitcastToAPInt();
             
-            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 3)).addImm(Imm.getLoBits(16));
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 3)).addImm(Imm.getLoBits(16).getZExtValue();
             Imm = Imm.ashr(16);
-            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 2)).addImm(Imm.getLoBits(16));
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 2)).addImm(Imm.getLoBits(16).getZExtValue();
             Imm = Imm.ashr(16);
-            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 1)).addImm(Imm.getLoBits(16));
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 1)).addImm(Imm.getLoBits(16).getZExtValue();
             Imm = Imm.ashr(16);
-            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 0)).addImm(Imm.getLoBits(16));
+            BuildMI(MBB, MI, DL, get(Z80::LD16ri), getRegisterInfo().getSubReg(Dst, 0)).addImm(Imm.getLoBits(16).getZExtValue();
             
             MBB.erase(MI);
             
