@@ -904,7 +904,7 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
       }
       default:
           llvm_unreachable("Unknown MVT for LowerStore");
-          return 0;
+          return SDValue();
   }
 }
 
@@ -1064,7 +1064,7 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
       }
       default:
           llvm_unreachable("Unknown MVT for LowerLoad");
-          return 0;
+          return SDValue();
   }
 }
 
