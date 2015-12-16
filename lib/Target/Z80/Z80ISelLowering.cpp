@@ -959,14 +959,14 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
         return DAG.getMergeValues(Ops, 2, dl);
       }
       case MVT::i32: {
-        SDValue Lo = DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
+        SDValue Lo = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
           DAG.getConstant(2, MVT::i16));
-        SDValue Hi = DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
+        SDValue Hi = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         SDValue NewChain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
           Lo.getValue(1), Hi.getValue(1));
 
@@ -979,27 +979,27 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
         return DAG.getMergeValues(Ops, 2, dl);
       }
       case MVT::i64: {
-        SDValue Lowest = DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
+        SDValue Lowest = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue LowAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
           DAG.getConstant(2, MVT::i16));
-        SDValue Low = DAG.getLoad(MVT::i16, dl, Chain, LowAddr,
+        SDValue Low = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, LowAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
           DAG.getConstant(4, MVT::i16));
-        SDValue High = DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
+        SDValue High = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue HighestAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
           DAG.getConstant(6, MVT::i16));
-        SDValue Highest = DAG.getLoad(MVT::i16, dl, Chain, HighestAddr,
+        SDValue Highest = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighestAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue NewChain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
           Lowest.getValue(1), Low.getValue(1), High.getValue(1), Highest.getValue(1));
@@ -1017,14 +1017,14 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
         return DAG.getMergeValues(Ops, 2, dl);
       }
       case MVT::f32: {
-        SDValue Lo = DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
+        SDValue Lo = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
           DAG.getConstant(2, MVT::i16));
-        SDValue Hi = DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
+        SDValue Hi = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         SDValue NewChain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
           Lo.getValue(1), Hi.getValue(1));
 
@@ -1037,27 +1037,27 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
         return DAG.getMergeValues(Ops, 2, dl);
       }
       case MVT::f64: {
-        SDValue Lowest = DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
+        SDValue Lowest = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue LowAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
           DAG.getConstant(2, MVT::i16));
-        SDValue Low = DAG.getLoad(MVT::i16, dl, Chain, LowAddr,
+        SDValue Low = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, LowAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
           DAG.getConstant(4, MVT::i16));
-        SDValue High = DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
+        SDValue High = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue HighestAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
           DAG.getConstant(6, MVT::i16));
-        SDValue Highest = DAG.getLoad(MVT::i16, dl, Chain, HighestAddr,
+        SDValue Highest = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighestAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
-          LD->isInvariant(), LD->getAlignment());
+          LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue NewChain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
           Lowest.getValue(1), Low.getValue(1), High.getValue(1), Highest.getValue(1));
