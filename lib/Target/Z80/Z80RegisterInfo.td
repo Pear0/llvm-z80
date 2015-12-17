@@ -44,10 +44,10 @@ class Z80Reg32WithSubRegs<string n, bits<16> Enc = 0, list<Register> subregs = [
 }
 
 //64 bit
-def subreg64_highest : Z80SubRegIndex<32, 48>;
-def subreg64_high    : Z80SubRegIndex<32, 32>;
-def subreg64_low     : Z80SubRegIndex<32, 16>;
-def subreg64_lowest  : Z80SubRegIndex<32, 0>;
+def subreg64_highest : Z80SubRegIndex<16, 48>;
+def subreg64_high    : Z80SubRegIndex<16, 32>;
+def subreg64_low     : Z80SubRegIndex<16, 16>;
+def subreg64_lowest  : Z80SubRegIndex<16, 0>;
 
 class Z80Reg64WithSubRegs<string n, bits<16> Enc = 0, list<Register> subregs = [], int Cost = 0>
   : Z80Reg<n, Enc, Cost> {
