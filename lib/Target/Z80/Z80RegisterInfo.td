@@ -36,6 +36,12 @@ class Z80RegWithSubRegs<string n, bits<16> Enc = 0, list<Register> subregs = [],
 def subreg32_hi : Z80SubRegIndex<16, 16>;
 def subreg32_lo : Z80SubRegIndex<16, 0>;
 
+//32 bit divided into 8 bit regs
+def subreg32_hi_hi : Z80SubRegIndex<8, 24>;
+def subreg32_hi_lo : Z80SubRegIndex<8, 16>;
+def subreg32_lo_hi : Z80SubRegIndex<8, 8>;
+def subreg32_lo_lo : Z80SubRegIndex<8, 0>;
+
 class Z80Reg32WithSubRegs<string n, bits<16> Enc = 0, list<Register> subregs = [], int Cost = 0>
   : Z80Reg<n, Enc, Cost> {
   let SubRegs = subregs;
@@ -48,6 +54,16 @@ def subreg64_highest : Z80SubRegIndex<16, 48>;
 def subreg64_high    : Z80SubRegIndex<16, 32>;
 def subreg64_low     : Z80SubRegIndex<16, 16>;
 def subreg64_lowest  : Z80SubRegIndex<16, 0>;
+
+//64 bit divided into 8 bit regs
+def subreg64_highest_hi : Z80SubRegIndex<8, 56>;
+def subreg64_highest_lo : Z80SubRegIndex<8, 48>;
+def subreg64_high_hi    : Z80SubRegIndex<8, 40>;
+def subreg64_high_lo    : Z80SubRegIndex<8, 32>;
+def subreg64_low_hi     : Z80SubRegIndex<8, 24>;
+def subreg64_low_lo     : Z80SubRegIndex<8, 16>;
+def subreg64_lowest_hi  : Z80SubRegIndex<8, 8>;
+def subreg64_lowest_lo  : Z80SubRegIndex<8, 0>;
 
 class Z80Reg64WithSubRegs<string n, bits<16> Enc = 0, list<Register> subregs = [], int Cost = 0>
   : Z80Reg<n, Enc, Cost> {

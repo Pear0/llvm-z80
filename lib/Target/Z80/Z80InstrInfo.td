@@ -110,6 +110,20 @@ def rst : PatLeaf<(i16 imm:$dst), [{
 //def LD32fri : PseudoI<(outs GR32:$dst), (ins f32imm:$src), [(set GR32:$dst, fpimm:$src)]>;
 //def LD64fri : PseudoI<(outs GR64:$dst), (ins f64imm:$src), [(set GR64:$dst, fpimm:$src)]>;
 
+
+let canFoldAsLoad = 1, isReMaterializable = 1 in {
+  def LD32rxm : PseudoI<(outs GR32:$dst), (ins xmem:$src),
+    [(set GR32:$dst, (load xaddr:$src))]>;
+  def LD64rxm : PseudoI<(outs GR64:$dst), (ins xmem:$src),
+    [(set GR64:$dst, (load xaddr:$src))]>;
+}
+
+def LD32xmr : PseudoI<(outs), (ins xmem:$dst, GR32:$src),
+  [(store GR32:$src, xaddr:$dst)]>;
+def LD64xmr : PseudoI<(outs), (ins xmem:$dst, GR64:$src),
+  [(store GR64:$src, xaddr:$dst)]>;
+
+
 //===----------------------------------------------------------------------===//
 // Instruction list.
 //===----------------------------------------------------------------------===//
