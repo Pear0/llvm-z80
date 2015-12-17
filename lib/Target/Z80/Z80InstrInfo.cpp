@@ -340,7 +340,7 @@ void Z80InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
       .addReg(SrcReg, getKillRegState(isKill));
   }
   else {
-      outs() << "Register Class: " << RC->getName() << ", Register: " << SrcReg << endl;
+      outs() << "Register Class: " << RC->getName() << ", Register: " << SrcReg << "\n";
       llvm_unreachable("Can't store this register to stack slot");
   }
 }
@@ -362,7 +362,7 @@ void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
       .addFrameIndex(FrameIndex).addImm(0);
   }
   else {
-    outs() << "Register Class: " << RC->getName() << ", Register: " << SrcReg << endl;
+    outs() << "Register Class: " << RC->getName() << ", Register: " << SrcReg << "\n";
     llvm_unreachable("Can't load this register from stack slot");
   }
 }
