@@ -18,6 +18,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/Support/raw_ostream.h"
 
 #define GET_INSTRINFO_CTOR
 #include "Z80GenInstrInfo.inc"
@@ -338,8 +339,10 @@ void Z80InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
       .addFrameIndex(FrameIndex).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   }
-  else
-    llvm_unreachable("Can't store this register to stack slot");
+  else {
+      outs() << "Register Class: " << RC->getName() << ", Register: " << SrcReg << endl;
+      llvm_unreachable("Can't store this register to stack slot");
+  }
 }
 
 void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
@@ -358,8 +361,10 @@ void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
     BuildMI(MBB, MI, dl, get(Z80::LD16rxm), DestReg)
       .addFrameIndex(FrameIndex).addImm(0);
   }
-  else
+  else {
+    outs() << "Register Class: " << RC->getName() << ", Register: " << SrcReg << endl;
     llvm_unreachable("Can't load this register from stack slot");
+  }
 }
 
 bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
