@@ -78,38 +78,38 @@ class Z80Reg64Class<dag reglist>
 //===----------------------------------------------------------------------===//
 
 // 8 bit registers
-def A : Z80Reg<"a", 7>;
-def B : Z80Reg<"b", 0>;
-def C : Z80Reg<"c", 1>;
-def D : Z80Reg<"d", 2>;
-def E : Z80Reg<"e", 3>;
-def H : Z80Reg<"h", 4>;
-def L : Z80Reg<"l", 5>;
-def XH : Z80Reg<"xh", 4, 1>;
-def XL : Z80Reg<"xl", 5, 1>;
-def YH : Z80Reg<"yh", 4, 1>;
-def YL : Z80Reg<"yl", 5, 1>;
+def A : Z80Reg<"a", 7>, DwarfRegNum<[0]>;
+def B : Z80Reg<"b", 0>, DwarfRegNum<[1]>;
+def C : Z80Reg<"c", 1>, DwarfRegNum<[2]>;
+def D : Z80Reg<"d", 2>, DwarfRegNum<[3]>;
+def E : Z80Reg<"e", 3>, DwarfRegNum<[4]>;
+def H : Z80Reg<"h", 4>, DwarfRegNum<[5]>;
+def L : Z80Reg<"l", 5>, DwarfRegNum<[6]>;
+def XH : Z80Reg<"xh", 4, 1>, DwarfRegNum<[7]>;
+def XL : Z80Reg<"xl", 5, 1>, DwarfRegNum<[8]>;
+def YH : Z80Reg<"yh", 4, 1>, DwarfRegNum<[9]>;
+def YL : Z80Reg<"yl", 5, 1>, DwarfRegNum<[10]>;
 
 // Flags register
-def FLAGS : Z80Reg<"f">;
+def FLAGS : Z80Reg<"f">, DwarfRegNum<[11]>;
 
 // 16 bit registers
-def BC : Z80RegWithSubRegs<"bc", 0, [B, C]>;
-def DE : Z80RegWithSubRegs<"de", 1, [D, E]>;
-def HL : Z80RegWithSubRegs<"hl", 2, [H, L]>;
-def AF : Z80RegWithSubRegs<"af", 3, [A, FLAGS]>;
-def IX : Z80RegWithSubRegs<"ix", 2, [XH, XL], 1>;
-def IY : Z80RegWithSubRegs<"iy", 2, [YH, YL], 1>;
+def BC : Z80RegWithSubRegs<"bc", 0, [B, C]>, DwarfRegNum<[20]>;
+def DE : Z80RegWithSubRegs<"de", 1, [D, E]>, DwarfRegNum<[21]>;
+def HL : Z80RegWithSubRegs<"hl", 2, [H, L]>, DwarfRegNum<[22]>;
+def AF : Z80RegWithSubRegs<"af", 3, [A, FLAGS]>, DwarfRegNum<[23]>;
+def IX : Z80RegWithSubRegs<"ix", 2, [XH, XL], 1>, DwarfRegNum<[24]>;
+def IY : Z80RegWithSubRegs<"iy", 2, [YH, YL], 1>, DwarfRegNum<[25]>;
 
-def SP : Z80Reg<"sp">;
-def PC : Z80Reg<"pc">;
+def SP : Z80Reg<"sp">, DwarfRegNum<[26]>;
+def PC : Z80Reg<"pc">, DwarfRegNum<[27]>;
 
 //32 bit composite registers
-def C32A : Z80Reg32WithSubRegs<"bcde", 0, [BC, DE], 2>;
-def C32B : Z80Reg32WithSubRegs<"hlix", 0, [HL, IX], 3>;
+def C32A : Z80Reg32WithSubRegs<"bcde", 0, [BC, DE], 2>, DwarfRegNum<[30]>;
+def C32B : Z80Reg32WithSubRegs<"hlix", 0, [HL, IX], 3>, DwarfRegNum<[31]>;
 
 //64 bit composite register
-def C64 : Z80Reg64WithSubRegs<"bcdehlix", 0, [BC, DE, HL, IX], 4>;
+def C64 : Z80Reg64WithSubRegs<"bcdehlix", 0, [BC, DE, HL, IX], 4>, DwarfRegNum<[40]>;
 
 //Register classes
 def GR8  : Z80Reg8Class<(add A, B, C, D, E, H, L)>;
