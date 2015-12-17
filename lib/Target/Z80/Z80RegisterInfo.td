@@ -112,7 +112,7 @@ def C32B : Z80Reg32WithSubRegs<"hlix", 0, [HL, IX], 3>, DwarfRegNum<[31]>;
 def C64 : Z80Reg64WithSubRegs<"bcdehlix", 0, [BC, DE, HL, IX], 4>, DwarfRegNum<[40]>;
 
 //Register classes
-def GR8  : Z80Reg8Class<(add A, B, C, D, E, H, L)>;
+def GR8  : Z80Reg8Class<(add A, B, C, D, E, H, L, XH, XL)>;
 def GR16 : Z80Reg16Class<(add BC, DE, HL, IX, IY)>;
 def BR16 : Z80Reg16Class<(add BC, DE, HL, IX)>;
 def IR16 : Z80Reg16Class<(add IX, IY)>;
