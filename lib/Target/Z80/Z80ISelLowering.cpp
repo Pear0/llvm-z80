@@ -767,6 +767,7 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
   outs() << "Lowering Store " << Op.getSimpleValueType().SimpleTy << ":";
   
   switch(Op.getSimpleValueType().SimpleTy) {
+      case MVT::Other:
       case MVT::i16: {
         SDValue Lo, Hi;
         if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Value)) {
