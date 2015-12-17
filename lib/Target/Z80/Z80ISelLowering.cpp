@@ -949,6 +949,7 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
   outs() << "Lowering " << Op.getSimpleValueType().SimpleTy << ":";
   
   switch(Op.getSimpleValueType().SimpleTy) {
+      case MVT::Other:
       case MVT::i16: {
         SDValue Lo = DAG.getLoad(MVT::i8, dl, Chain, BasePtr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
