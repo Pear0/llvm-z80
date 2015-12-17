@@ -30,12 +30,12 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
   addRegisterClass(MVT::i16, &Z80::GR16RegClass);
   
   //Composite integer registers
-  addRegisterClass(MVT::i32, &Z80::GR32RegClass);
-  addRegisterClass(MVT::i64, &Z80::GR64RegClass);
+  //addRegisterClass(MVT::i32, &Z80::GR32RegClass);
+  //addRegisterClass(MVT::i64, &Z80::GR64RegClass);
   
   //Composite float registers
-  addRegisterClass(MVT::f32, &Z80::GR32RegClass);
-  addRegisterClass(MVT::f64, &Z80::GR64RegClass);
+  //addRegisterClass(MVT::f32, &Z80::GR32RegClass);
+  //addRegisterClass(MVT::f64, &Z80::GR64RegClass);
   
   computeRegisterProperties();
 
@@ -52,18 +52,18 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
   setOperationAction(ISD::LOAD,  MVT::i16, Custom);
   
   //Composite Register Loads
-  setOperationAction(ISD::LOAD,  MVT::i32, Custom);
-  setOperationAction(ISD::LOAD,  MVT::i64, Custom);
-  setOperationAction(ISD::LOAD,  MVT::f32, Custom);
-  setOperationAction(ISD::LOAD,  MVT::f64, Custom);
+  setOperationAction(ISD::LOAD,  MVT::i32, Expand/*Custom*/);
+  setOperationAction(ISD::LOAD,  MVT::i64, Expand/*Custom*/);
+  setOperationAction(ISD::LOAD,  MVT::f32, Expand/*Custom*/);
+  setOperationAction(ISD::LOAD,  MVT::f64, Expand/*Custom*/);
   
   setOperationAction(ISD::STORE, MVT::i16, Custom);
   
   //COmposite Register Stores
-  setOperationAction(ISD::STORE,  MVT::i32, Custom);
-  setOperationAction(ISD::STORE,  MVT::i64, Custom);
-  setOperationAction(ISD::STORE,  MVT::f32, Custom);
-  setOperationAction(ISD::STORE,  MVT::f64, Custom);
+  setOperationAction(ISD::STORE,  MVT::i32, Expand/*Custom*/);
+  setOperationAction(ISD::STORE,  MVT::i64, Expand/*Custom*/);
+  setOperationAction(ISD::STORE,  MVT::f32, Expand/*Custom*/);
+  setOperationAction(ISD::STORE,  MVT::f64, Expand/*Custom*/);
 
   setOperationAction(ISD::ZERO_EXTEND, MVT::i16, Custom);
   setOperationAction(ISD::SIGN_EXTEND, MVT::i16, Custom);
