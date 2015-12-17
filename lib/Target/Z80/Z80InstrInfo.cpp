@@ -362,7 +362,7 @@ void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
       .addFrameIndex(FrameIndex).addImm(0);
   }
   else {
-    outs() << "Register Class: " << RC->getName() << ", Register: " << SrcReg << "\n";
+    outs() << "Register Class: " << RC->getName() << ", Register: " << DestReg << "\n";
     llvm_unreachable("Can't load this register from stack slot");
   }
 }
