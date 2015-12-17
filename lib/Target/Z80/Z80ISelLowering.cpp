@@ -406,7 +406,9 @@ SDValue Z80TargetLowering::LowerCallResult(SDValue Chain, SDValue Flag,
   SmallVector<CCValAssign, 16> RVLocs;
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
     getTargetMachine(), RVLocs, *DAG.getContext());
-
+  
+  
+  
   CCInfo.AnalyzeCallResult(Ins, RetCC_Z80);
 
   // Copy all of the result registers out of their specified physreg.
@@ -947,6 +949,8 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
   }
   
   outs() << "Lowering " << Op.getSimpleValueType().SimpleTy << ":";
+  
+  LD->ge
   
   switch(Op.getSimpleValueType().SimpleTy) {
       case MVT::Other:
