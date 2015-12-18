@@ -20,7 +20,7 @@ def RetCC_Z80 : CallingConv<[
   CCIfType<[i8], CCAssignToReg<[A, B, C, D, E, H, L]>>,
   
   // i16 are returned in register HL
-  CCIfType<[i16], CCAssignToReg<[HL, BC, DE, IX]>>,
+  CCIfType<[i16], CCAssignToReg<[HL, BC, DE, IY]>>,
   
   // i32 are returned in register C32A
   CCIfType<[i32], CCAssignToReg<[C32A]>>,
@@ -46,7 +46,7 @@ def CC_Z80 : CallingConv<[
   CCIfType<[i8], CCAssignToStack<1, 1>>,
 
   // Assign i16 arguments in registers then stack slots
-  CCIfType<[i16], CCAssignToReg<[HL, BC, DE, IX]>>,
+  CCIfType<[i16], CCAssignToReg<[HL, BC, DE, IY]>>,
   CCIfType<[i16], CCAssignToStack<2, 1>>,
   
   // Assign i32 arguments in registers then stack slots
@@ -75,4 +75,4 @@ def CSR_NoRegs : CalleeSavedRegs<(add)>;
 
 //I don't like this solution for doubles but I think it's necessary
 //def CSR_16 : CalleeSavedRegs<(add BC, DE, IX, IY)>;
-def CSR_16 : CalleeSavedRegs<(add IY)>;
+def CSR_16 : CalleeSavedRegs<(add IX)>;
