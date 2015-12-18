@@ -333,8 +333,8 @@ void Z80InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
     BuildMI(MBB, MI, dl, get(Z80::LD8xmr))
       .addFrameIndex(FrameIndex).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
-  else if (RC == &Z80::BR16RegClass ||
-           Z80::BR16RegClass.contains(SrcReg)) {
+  else if (RC == &Z80::GR16RegClass ||
+           Z80::GR16RegClass.contains(SrcReg)) {
     BuildMI(MBB, MI, dl, get(Z80::LD16xmr))
       .addFrameIndex(FrameIndex).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
@@ -370,8 +370,8 @@ void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
   if (RC == &Z80::GR8RegClass)
     BuildMI(MBB, MI, dl, get(Z80::LD8rxm), DestReg)
       .addFrameIndex(FrameIndex).addImm(0);
-  else if (RC == &Z80::BR16RegClass ||
-           Z80::BR16RegClass.contains(DestReg)) {
+  else if (RC == &Z80::GR16RegClass ||
+           Z80::GR16RegClass.contains(DestReg)) {
     BuildMI(MBB, MI, dl, get(Z80::LD16rxm), DestReg)
       .addFrameIndex(FrameIndex).addImm(0);
   }
