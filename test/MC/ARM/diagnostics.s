@@ -1,7 +1,7 @@
 @ RUN: not llvm-mc -triple=armv7-apple-darwin < %s 2> %t
-@ RUN: FileCheck --check-prefix=CHECK-ERRORS < %t %s
+@ RUN: FileCheck --check-prefix=CHECK-ERRORS --check-prefix=CHECK-ERRORS-V7 < %t %s
 @ RUN: not llvm-mc -triple=armv8 < %s 2> %t
-@ RUN: FileCheck --check-prefix=CHECK-ERRORS-V8 < %t %s
+@ RUN: FileCheck --check-prefix=CHECK-ERRORS --check-prefix=CHECK-ERRORS-V8 < %t %s
 
 @ Check for various assembly diagnostic messages on invalid input.
 
@@ -98,22 +98,22 @@
         @ Out of range immediates for v8 HLT instruction.
         hlt #65536
         hlt #-1
-@CHECK-ERRORS-V8: error: invalid operand for instruction
-@CHECK-ERRORS-V8:         hlt #65536
-@CHECK-ERRORS-V8:              ^
-@CHECK-ERRORS-V8: error: invalid operand for instruction
-@CHECK-ERRORS-V8:         hlt #-1
-@CHECK-ERRORS-V8:              ^
+@CHECK-ERRORS: error: invalid operand for instruction
+@CHECK-ERRORS:         hlt #65536
+@CHECK-ERRORS:              ^
+@CHECK-ERRORS: error: invalid operand for instruction
+@CHECK-ERRORS:         hlt #-1
+@CHECK-ERRORS:              ^
 
         @ Illegal condition code for v8 HLT instruction.
         hlteq #2
         hltlt #23
-@CHECK-ERRORS-V8: error: instruction 'hlt' is not predicable, but condition code specified
-@CHECK-ERRORS-V8:        hlteq #2
-@CHECK-ERRORS-V8:        ^
-@CHECK-ERRORS-V8: error: instruction 'hlt' is not predicable, but condition code specified
-@CHECK-ERRORS-V8:        hltlt #23
-@CHECK-ERRORS-V8:        ^
+@CHECK-ERRORS: error: instruction 'hlt' is not predicable, but condition code specified
+@CHECK-ERRORS:        hlteq #2
+@CHECK-ERRORS:        ^
+@CHECK-ERRORS: error: instruction 'hlt' is not predicable, but condition code specified
+@CHECK-ERRORS:        hltlt #23
+@CHECK-ERRORS:        ^
 
         @ Out of range 4 and 3 bit immediates on CDP[2]
 
@@ -149,8 +149,14 @@
 @ CHECK-ERRORS: error: invalid operand for instruction
 @ CHECK-ERRORS: error: invalid operand for instruction
 @ CHECK-ERRORS: error: immediate operand must be in the range [0,15]
-@ CHECK-ERRORS: error: immediate operand must be in the range [0,15]
+@ CHECK-ERRORS-V7: error: immediate operand must be in the range [0,15]
+@ CHECK-ERRORS-V8: error: invalid operand for instruction
 
+        @ p10 and p11 are reserved for NEON
+        mcr p10, #2, r5, c1, c1, #4
+        mcrr p11, #8, r5, r4, c1
+@ CHECK-ERRORS: error: invalid operand for instruction
+@ CHECK-ERRORS: error: invalid operand for instruction
 
         @ Out of range immediate for MOV
         movw r9, 0x10000
@@ -178,7 +184,8 @@
 @ CHECK-ERRORS: error: invalid operand for instruction
 @ CHECK-ERRORS: error: invalid operand for instruction
 @ CHECK-ERRORS: error: immediate operand must be in the range [0,15]
-@ CHECK-ERRORS: error: immediate operand must be in the range [0,15]
+@ CHECK-ERRORS-V7: error: immediate operand must be in the range [0,15]
+@ CHECK-ERRORS-V8: error: invalid operand for instruction
 
         @ Shifter operand validation for PKH instructions.
         pkhbt r2, r2, r3, lsl #-1
@@ -346,6 +353,24 @@
 @ CHECK-ERRORS:         ubfxgt r4, r5, #16, #17
 @ CHECK-ERRORS:                             ^
 
+        @ Using pc for SBFX/UBFX
+        sbfx pc, r2, #1, #3
+        sbfx sp, pc, #4, #5
+        ubfx pc, r0, #0, #31
+        ubfx r14, pc, #1, #2
+@ CHECK-ERRORS: error: invalid operand for instruction
+@ CHECK-ERRORS:         sbfx pc, r2, #1, #3
+@ CHECK-ERRORS:              ^
+@ CHECK-ERRORS: error: invalid operand for instruction
+@ CHECK-ERRORS:         sbfx sp, pc, #4, #5
+@ CHECK-ERRORS:                  ^
+@ CHECK-ERRORS: error: invalid operand for instruction
+@ CHECK-ERRORS:         ubfx pc, r0, #0, #31
+@ CHECK-ERRORS:              ^
+@ CHECK-ERRORS: error: invalid operand for instruction
+@ CHECK-ERRORS:         ubfx r14, pc, #1, #2
+@ CHECK-ERRORS:                   ^
+
         @ Out of order Rt/Rt2 operands for ldrd
         ldrd  r4, r3, [r8]
         ldrd  r4, r3, [r8, #8]!
@@ -371,12 +396,14 @@
         ldc2 p2, c8, [r1], { 256 }
         ldc2 p2, c8, [r1], { -1 }
 
-@ CHECK-ERRORS: error: coprocessor option must be an immediate in range [0, 255]
-@ CHECK-ERRORS:         ldc2 p2, c8, [r1], { 256 }
-@ CHECK-ERRORS:                              ^
-@ CHECK-ERRORS: error: coprocessor option must be an immediate in range [0, 255]
-@ CHECK-ERRORS:         ldc2 p2, c8, [r1], { -1 }
-@ CHECK-ERRORS:                              ^
+@ CHECK-ERRORS-V7: error: coprocessor option must be an immediate in range [0, 255]
+@ CHECK-ERRORS-V7:         ldc2 p2, c8, [r1], { 256 }
+@ CHECK-ERRORS-V7:                              ^
+@ CHECK-ERRORS-V8: error: register expected
+@ CHECK-ERRORS-V7: error: coprocessor option must be an immediate in range [0, 255]
+@ CHECK-ERRORS-V7:         ldc2 p2, c8, [r1], { -1 }
+@ CHECK-ERRORS-V7:                              ^
+@ CHECK-ERRORS-V8: error: register expected
 
         @ Bad CPS instruction format.
         cps f,#1
@@ -447,11 +474,234 @@
         vrintn.f32 s8, s9
         vrintp.f64.f64 d10, d11
         vrintm.f64 d12, d13
-@ CHECK-ERRORS: error: instruction requires: FPARMv8
-@ CHECK-ERRORS: error: instruction requires: FPARMv8
-@ CHECK-ERRORS: error: instruction requires: FPARMv8
-@ CHECK-ERRORS: error: instruction requires: FPARMv8
-@ CHECK-ERRORS: error: instruction requires: FPARMv8
-@ CHECK-ERRORS: error: instruction requires: FPARMv8
-@ CHECK-ERRORS: error: instruction requires: FPARMv8
-@ CHECK-ERRORS: error: instruction requires: FPARMv8
+@ CHECK-ERRORS-V7: error: instruction requires: FPARMv8
+@ CHECK-ERRORS-V7: error: instruction requires: FPARMv8
+@ CHECK-ERRORS-V7: error: instruction requires: FPARMv8
+@ CHECK-ERRORS-V7: error: instruction requires: FPARMv8
+@ CHECK-ERRORS-V7: error: instruction requires: FPARMv8
+@ CHECK-ERRORS-V7: error: instruction requires: FPARMv8
+@ CHECK-ERRORS-V7: error: instruction requires: FPARMv8
+@ CHECK-ERRORS-V7: error: instruction requires: FPARMv8
+
+        stm sp!, {r0, pc}^
+        ldm sp!, {r0}^
+@ CHECK-ERRORS: error: system STM cannot have writeback register
+@ CHECK-ERRORS: error: writeback register only allowed on system LDM if PC in register-list
+
+foo2:
+        mov r0, foo2
+        movw r0, foo2
+@ CHECK-ERRORS: error: immediate expression for mov requires :lower16: or :upper16
+@ CHECK-ERRORS:                 ^
+@ CHECK-ERRORS: error: immediate expression for mov requires :lower16: or :upper16
+@ CHECK-ERRORS:                  ^
+
+        str r0, [r0, #4]!
+        str r0, [r0, r1]!
+        str r0, [r0], #4
+        str r0, [r0], r1
+        strh r0, [r0, #2]!
+        strh r0, [r0, r1]!
+        strh r0, [r0], #2
+        strh r0, [r0], r1
+        strb r0, [r0, #1]!
+        strb r0, [r0, r1]!
+        strb r0, [r0], #1
+        strb r0, [r0], r1
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: str r0, [r0, #4]!
+@ CHECK-ERRORS:         ^
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: str r0, [r0, r1]!
+@ CHECK-ERRORS:         ^
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: str r0, [r0], #4
+@ CHECK-ERRORS:         ^
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: str r0, [r0], r1
+@ CHECK-ERRORS:         ^
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: strh r0, [r0, #2]!
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: strh r0, [r0, r1]!
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: strh r0, [r0], #2
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: strh r0, [r0], r1
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: strb r0, [r0, #1]!
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: strb r0, [r0, r1]!
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: strb r0, [r0], #1
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: source register and base register can't be identical
+@ CHECK-ERRORS: strb r0, [r0], r1
+@ CHECK-ERRORS:          ^
+
+        ldr r0, [r0, #4]!
+        ldr r0, [r0, r1]!
+        ldr r0, [r0], #4
+        ldr r0, [r0], r1
+        ldrh r0, [r0, #2]!
+        ldrh r0, [r0, r1]!
+        ldrh r0, [r0], #2
+        ldrh r0, [r0], r1
+        ldrsh r0, [r0, #2]!
+        ldrsh r0, [r0, r1]!
+        ldrsh r0, [r0], #2
+        ldrsh r0, [r0], r1
+        ldrb r0, [r0, #1]!
+        ldrb r0, [r0, r1]!
+        ldrb r0, [r0], #1
+        ldrb r0, [r0], r1
+        ldrsb r0, [r0, #1]!
+        ldrsb r0, [r0, r1]!
+        ldrsb r0, [r0], #1
+        ldrsb r0, [r0], r1
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldr r0, [r0, #4]!
+@ CHECK-ERRORS:         ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldr r0, [r0, r1]!
+@ CHECK-ERRORS:         ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldr r0, [r0], #4
+@ CHECK-ERRORS:         ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldr r0, [r0], r1
+@ CHECK-ERRORS:         ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrh r0, [r0, #2]!
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrh r0, [r0, r1]!
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrh r0, [r0], #2
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrh r0, [r0], r1
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrsh r0, [r0, #2]!
+@ CHECK-ERRORS:           ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrsh r0, [r0, r1]!
+@ CHECK-ERRORS:           ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrsh r0, [r0], #2
+@ CHECK-ERRORS:           ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrsh r0, [r0], r1
+@ CHECK-ERRORS:           ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrb r0, [r0, #1]!
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrb r0, [r0, r1]!
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrb r0, [r0], #1
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrb r0, [r0], r1
+@ CHECK-ERRORS:          ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrsb r0, [r0, #1]!
+@ CHECK-ERRORS:           ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrsb r0, [r0, r1]!
+@ CHECK-ERRORS:           ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrsb r0, [r0], #1
+@ CHECK-ERRORS:           ^
+@ CHECK-ERRORS: error: destination register and base register can't be identical
+@ CHECK-ERRORS: ldrsb r0, [r0], r1
+@ CHECK-ERRORS:           ^
+
+        @ Out of range modified immediate values
+        mov  r5, #-256, #6
+        mov  r6, #42, #7
+        mvn  r5, #256, #6
+        mvn  r6, #42, #298
+        cmp  r5, #65535, #6
+        cmp  r6, #42, #31
+        cmn  r5, #-1, #6
+        cmn  r6, #42, #32
+	msr  APSR_nzcvq, #-128, #2
+	msr  apsr_nzcvqg, #0, #1
+        adc  r7, r8, #-256, #2
+        adc  r7, r8, #128, #1
+        sbc  r7, r8, #-256, #2
+        sbc  r7, r8, #128, #1
+        add  r7, r8, #-2149, #0
+        add  r7, r8, #100, #1
+        sub  r7, r8, #-2149, #0
+        sub  r7, r8, #100, #1
+        and  r7, r8, #-2149, #0
+        and  r7, r8, #100, #1
+        orr  r7, r8, #-2149, #0
+        orr  r7, r8, #100, #1
+        eor  r7, r8, #-2149, #0
+        eor  r7, r8, #100, #1
+        bic  r7, r8, #-2149, #0
+        bic  r7, r8, #100, #1
+        rsb  r7, r8, #-2149, #0
+        rsb  r7, r8, #100, #1
+        adds r7, r8, #-2149, #0
+        adds r7, r8, #100, #1
+        subs r7, r8, #-2149, #0
+        subs r7, r8, #100, #1
+        rsbs r7, r8, #-2149, #0
+        rsbs r7, r8, #100, #1
+        rsc r7, r8, #-2149, #0
+        rsc r7, r8, #100, #1
+        TST r7, #-2149, #0
+        TST r7, #100, #1
+        TEQ r7, #-2149, #0
+        TEQ r7, #100, #1
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]
+@ CHECK-ERRORS: error: immediate operand must a number in the range [0, 255]
+@ CHECK-ERRORS: error: immediate operand must an even number in the range [0, 30]

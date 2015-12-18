@@ -15,7 +15,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#define DEBUG_TYPE "bypass-slow-division"
 #include "llvm/Transforms/Utils/BypassSlowDivision.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/IR/Function.h"
@@ -23,6 +22,8 @@
 #include "llvm/IR/Instructions.h"
 
 using namespace llvm;
+
+#define DEBUG_TYPE "bypass-slow-division"
 
 namespace {
   struct DivOpInfo {
@@ -53,11 +54,11 @@ namespace llvm {
     }
 
     static DivOpInfo getEmptyKey() {
-      return DivOpInfo(false, 0, 0);
+      return DivOpInfo(false, nullptr, nullptr);
     }
 
     static DivOpInfo getTombstoneKey() {
-      return DivOpInfo(true, 0, 0);
+      return DivOpInfo(true, nullptr, nullptr);
     }
 
     static unsigned getHashValue(const DivOpInfo &Val) {
@@ -81,7 +82,7 @@ static bool insertFastDiv(Function &F,
                           bool UseSignedOp,
                           DivCacheTy &PerBBDivCache) {
   // Get instruction operands
-  Instruction *Instr = J;
+  Instruction *Instr = &*J;
   Value *Dividend = Instr->getOperand(0);
   Value *Divisor = Instr->getOperand(1);
 
@@ -93,7 +94,7 @@ static bool insertFastDiv(Function &F,
   }
 
   // Basic Block is split before divide
-  BasicBlock *MainBB = I;
+  BasicBlock *MainBB = &*I;
   BasicBlock *SuccessorBB = I->splitBasicBlock(J);
   ++I; //advance iterator I to successorBB
 
@@ -189,7 +190,7 @@ static bool reuseOrInsertFastDiv(Function &F,
                                  bool UseSignedOp,
                                  DivCacheTy &PerBBDivCache) {
   // Get instruction operands
-  Instruction *Instr = J;
+  Instruction *Instr = &*J;
   DivOpInfo Key(UseSignedOp, Instr->getOperand(0), Instr->getOperand(1));
   DivCacheTy::iterator CacheI = PerBBDivCache.find(Key);
 

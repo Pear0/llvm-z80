@@ -19,7 +19,7 @@
 #ifndef LLVM_C_TARGET_H
 #define LLVM_C_TARGET_H
 
-#include "llvm-c/Core.h"
+#include "llvm-c/Types.h"
 #include "llvm/Config/llvm-config.h"
 
 #if defined(_MSC_VER) && !defined(inline)
@@ -41,7 +41,6 @@ enum LLVMByteOrdering { LLVMBigEndian, LLVMLittleEndian };
 
 typedef struct LLVMOpaqueTargetData *LLVMTargetDataRef;
 typedef struct LLVMOpaqueTargetLibraryInfotData *LLVMTargetLibraryInfoRef;
-typedef struct LLVMStructLayout *LLVMStructLayoutRef;
 
 /* Declare all of the target-initialization functions that are available. */
 #define LLVM_TARGET(TargetName) \

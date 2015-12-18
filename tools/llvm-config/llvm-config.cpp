@@ -20,6 +20,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/Triple.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Config/config.h"
 #include "llvm/Config/llvm-config.h"
@@ -29,6 +30,7 @@
 #include <cstdlib>
 #include <set>
 #include <vector>
+#include <unordered_set>
 
 using namespace llvm;
 
@@ -50,12 +52,16 @@ using namespace llvm;
 /// \param Name - The component to traverse.
 /// \param ComponentMap - A prebuilt map of component names to descriptors.
 /// \param VisitedComponents [in] [out] - The set of already visited components.
-/// \param RequiredLibs [out] - The ordered list of required libraries.
-static void VisitComponent(StringRef Name,
+/// \param RequiredLibs [out] - The ordered list of required
+/// libraries.
+/// \param GetComponentNames - Get the component names instead of the
+/// library name.
+static void VisitComponent(const std::string& Name,
                            const StringMap<AvailableComponent*> &ComponentMap,
                            std::set<AvailableComponent*> &VisitedComponents,
-                           std::vector<StringRef> &RequiredLibs,
-                           bool IncludeNonInstalled) {
+                           std::vector<std::string> &RequiredLibs,
+                           bool IncludeNonInstalled, bool GetComponentNames,
+                           const std::string *ActiveLibDir, bool *HasMissing) {
   // Lookup the component.
   AvailableComponent *AC = ComponentMap.lookup(Name);
   assert(AC && "Invalid component name!");
@@ -73,12 +79,22 @@ static void VisitComponent(StringRef Name,
   // Otherwise, visit all the dependencies.
   for (unsigned i = 0; AC->RequiredLibraries[i]; ++i) {
     VisitComponent(AC->RequiredLibraries[i], ComponentMap, VisitedComponents,
-                   RequiredLibs, IncludeNonInstalled);
+                   RequiredLibs, IncludeNonInstalled, GetComponentNames,
+                   ActiveLibDir, HasMissing);
+  }
+
+  if (GetComponentNames) {
+    RequiredLibs.push_back(Name);
+    return;
   }
 
   // Add to the required library list.
-  if (AC->Library)
+  if (AC->Library) {
+    if (!IncludeNonInstalled && HasMissing && !*HasMissing && ActiveLibDir) {
+      *HasMissing = !sys::fs::exists(*ActiveLibDir + "/" + AC->Library);
+    }
     RequiredLibs.push_back(AC->Library);
+  }
 }
 
 /// \brief Compute the list of required libraries for a given list of
@@ -86,14 +102,15 @@ static void VisitComponent(StringRef Name,
 /// appear prior to their dependencies).
 ///
 /// \param Components - The names of the components to find libraries for.
-/// \param RequiredLibs [out] - On return, the ordered list of libraries that
-/// are required to link the given components.
 /// \param IncludeNonInstalled - Whether non-installed components should be
 /// reported.
-void ComputeLibsForComponents(const std::vector<StringRef> &Components,
-                              std::vector<StringRef> &RequiredLibs,
-                              bool IncludeNonInstalled) {
-  std::set<AvailableComponent*> VisitedComponents;
+/// \param GetComponentNames - True if one would prefer the component names.
+static std::vector<std::string>
+ComputeLibsForComponents(const std::vector<StringRef> &Components,
+                         bool IncludeNonInstalled, bool GetComponentNames,
+                         const std::string *ActiveLibDir, bool *HasMissing) {
+  std::vector<std::string> RequiredLibs;
+  std::set<AvailableComponent *> VisitedComponents;
 
   // Build a map of component names to information.
   StringMap<AvailableComponent*> ComponentMap;
@@ -115,17 +132,20 @@ void ComputeLibsForComponents(const std::vector<StringRef> &Components,
     }
 
     VisitComponent(ComponentLower, ComponentMap, VisitedComponents,
-                   RequiredLibs, IncludeNonInstalled);
+                   RequiredLibs, IncludeNonInstalled, GetComponentNames,
+                   ActiveLibDir, HasMissing);
   }
 
   // The list is now ordered with leafs first, we want the libraries to printed
   // in the reverse order of dependency.
   std::reverse(RequiredLibs.begin(), RequiredLibs.end());
+
+  return RequiredLibs;
 }
 
 /* *** */
 
-void usage() {
+static void usage() {
   errs() << "\
 usage: llvm-config <OPTION>... [<COMPONENT>...]\n\
 \n\
@@ -147,6 +167,7 @@ Options:\n\
   --cflags          C compiler flags for files that include LLVM headers.\n\
   --cxxflags        C++ compiler flags for files that include LLVM headers.\n\
   --ldflags         Print Linker flags.\n\
+  --system-libs     System Libraries needed to link against LLVM components.\n\
   --libs            Libraries needed to link against LLVM components.\n\
   --libnames        Bare library names for in-tree builds.\n\
   --libfiles        Fully qualified library filenames for makefile depends.\n\
@@ -154,6 +175,10 @@ Options:\n\
   --targets-built   List of all targets currently built.\n\
   --host-target     Target triple used to configure LLVM.\n\
   --build-mode      Print build mode of LLVM tree (e.g. Debug or Release).\n\
+  --assertion-mode  Print assertion mode of LLVM tree (ON or OFF).\n\
+  --build-system    Print the build system used to build LLVM (autoconf or cmake).\n\
+  --has-rtti        Print whether or not LLVM was built with rtti (YES or NO).\n\
+  --shared-mode     Print how the provided components can be collectively linked (`shared` or `static`).\n\
 Typical components:\n\
   all               All LLVM libraries (default).\n\
   engine            Either a native JIT or a bitcode interpreter.\n";
@@ -168,9 +193,34 @@ std::string GetExecutablePath(const char *Argv0) {
   return llvm::sys::fs::getMainExecutable(Argv0, P);
 }
 
+/// \brief Expand the semi-colon delimited LLVM_DYLIB_COMPONENTS into
+/// the full list of components.
+std::vector<std::string> GetAllDyLibComponents(const bool IsInDevelopmentTree,
+                                               const bool GetComponentNames) {
+  std::vector<StringRef> DyLibComponents;
+
+  StringRef DyLibComponentsStr(LLVM_DYLIB_COMPONENTS);
+  size_t Offset = 0;
+  while (true) {
+    const size_t NextOffset = DyLibComponentsStr.find(';', Offset);
+    DyLibComponents.push_back(DyLibComponentsStr.substr(Offset, NextOffset));
+    if (NextOffset == std::string::npos) {
+      break;
+    }
+    Offset = NextOffset + 1;
+  }
+
+  assert(!DyLibComponents.empty());
+
+  return ComputeLibsForComponents(DyLibComponents,
+                                  /*IncludeNonInstalled=*/IsInDevelopmentTree,
+                                  GetComponentNames, nullptr, nullptr);
+}
+
 int main(int argc, char **argv) {
   std::vector<StringRef> Components;
   bool PrintLibs = false, PrintLibNames = false, PrintLibFiles = false;
+  bool PrintSystemLibs = false, PrintSharedMode = false;
   bool HasAnyOption = false;
 
   // llvm-config is designed to support being run both from a development tree
@@ -183,6 +233,13 @@ int main(int argc, char **argv) {
   std::string CurrentExecPrefix;
   std::string ActiveObjRoot;
 
+  // If CMAKE_CFG_INTDIR is given, honor it as build mode.
+  char const *build_mode = LLVM_BUILDMODE;
+#if defined(CMAKE_CFG_INTDIR)
+  if (!(CMAKE_CFG_INTDIR[0] == '.' && CMAKE_CFG_INTDIR[1] == '\0'))
+    build_mode = CMAKE_CFG_INTDIR;
+#endif
+
   // Create an absolute path, and pop up one directory (we expect to be inside a
   // bin dir).
   sys::fs::make_absolute(CurrentPath);
@@ -192,7 +249,7 @@ int main(int argc, char **argv) {
   // Check to see if we are inside a development tree by comparing to possible
   // locations (prefix style or CMake style).
   if (sys::fs::equivalent(CurrentExecPrefix,
-                          Twine(LLVM_OBJ_ROOT) + "/" + LLVM_BUILDMODE)) {
+                          Twine(LLVM_OBJ_ROOT) + "/" + build_mode)) {
     IsInDevelopmentTree = true;
     DevelopmentTreeLayout = MakefileStyle;
 
@@ -230,16 +287,20 @@ int main(int argc, char **argv) {
     // layout.
     switch (DevelopmentTreeLayout) {
     case MakefileStyle:
-      ActiveBinDir = ActiveObjRoot + "/" + LLVM_BUILDMODE + "/bin";
-      ActiveLibDir = ActiveObjRoot + "/" + LLVM_BUILDMODE + "/lib";
+      ActivePrefix = ActiveObjRoot;
+      ActiveBinDir = ActiveObjRoot + "/" + build_mode + "/bin";
+      ActiveLibDir =
+          ActiveObjRoot + "/" + build_mode + "/lib" + LLVM_LIBDIR_SUFFIX;
       break;
     case CMakeStyle:
       ActiveBinDir = ActiveObjRoot + "/bin";
-      ActiveLibDir = ActiveObjRoot + "/lib";
+      ActiveLibDir = ActiveObjRoot + "/lib" + LLVM_LIBDIR_SUFFIX;
       break;
     case CMakeBuildModeStyle:
-      ActiveBinDir = ActiveObjRoot + "/bin/" + LLVM_BUILDMODE;
-      ActiveLibDir = ActiveObjRoot + "/lib/" + LLVM_BUILDMODE;
+      ActivePrefix = ActiveObjRoot;
+      ActiveBinDir = ActiveObjRoot + "/bin/" + build_mode;
+      ActiveLibDir =
+          ActiveObjRoot + "/lib" + LLVM_LIBDIR_SUFFIX + "/" + build_mode;
       break;
     }
 
@@ -250,9 +311,111 @@ int main(int argc, char **argv) {
     ActivePrefix = CurrentExecPrefix;
     ActiveIncludeDir = ActivePrefix + "/include";
     ActiveBinDir = ActivePrefix + "/bin";
-    ActiveLibDir = ActivePrefix + "/lib";
+    ActiveLibDir = ActivePrefix + "/lib" + LLVM_LIBDIR_SUFFIX;
     ActiveIncludeOption = "-I" + ActiveIncludeDir;
   }
+
+  /// We only use `shared library` mode in cases where the static library form
+  /// of the components provided are not available; note however that this is
+  /// skipped if we're run from within the build dir. However, once installed,
+  /// we still need to provide correct output when the static archives are
+  /// removed or, as in the case of CMake's `BUILD_SHARED_LIBS`, never present
+  /// in the first place. This can't be done at configure/build time.
+
+  StringRef SharedExt, SharedVersionedExt, SharedDir, SharedPrefix, StaticExt,
+    StaticPrefix, StaticDir = "lib";
+  const Triple HostTriple(Triple::normalize(LLVM_DEFAULT_TARGET_TRIPLE));
+  if (HostTriple.isOSWindows()) {
+    SharedExt = "dll";
+    SharedVersionedExt = PACKAGE_VERSION ".dll";
+    StaticExt = "a";
+    SharedDir = ActiveBinDir;
+    StaticDir = ActiveLibDir;
+    StaticPrefix = SharedPrefix = "lib";
+  } else if (HostTriple.isOSDarwin()) {
+    SharedExt = "dylib";
+    SharedVersionedExt = PACKAGE_VERSION ".dylib";
+    StaticExt = "a";
+    StaticDir = SharedDir = ActiveLibDir;
+    StaticPrefix = SharedPrefix = "lib";
+  } else {
+    // default to the unix values:
+    SharedExt = "so";
+    SharedVersionedExt = PACKAGE_VERSION ".so";
+    StaticExt = "a";
+    StaticDir = SharedDir = ActiveLibDir;
+    StaticPrefix = SharedPrefix = "lib";
+  }
+
+  const bool BuiltDyLib = (std::strcmp(LLVM_ENABLE_DYLIB, "ON") == 0);
+
+  enum { CMake, AutoConf } ConfigTool;
+  if (std::strcmp(LLVM_BUILD_SYSTEM, "cmake") == 0) {
+    ConfigTool = CMake;
+  } else {
+    ConfigTool = AutoConf;
+  }
+
+  /// CMake style shared libs, ie each component is in a shared library.
+  const bool BuiltSharedLibs =
+      (ConfigTool == CMake && std::strcmp(LLVM_ENABLE_SHARED, "ON") == 0);
+
+  bool DyLibExists = false;
+  const std::string DyLibName =
+    (SharedPrefix + "LLVM-" + SharedVersionedExt).str();
+
+  if (BuiltDyLib) {
+    DyLibExists = sys::fs::exists(SharedDir + "/" + DyLibName);
+  }
+
+  /// Get the component's library name without the lib prefix and the
+  /// extension. Returns true if Lib is in a recognized format.
+  auto GetComponentLibraryNameSlice = [&](const StringRef &Lib,
+                                          StringRef &Out) {
+    if (Lib.startswith("lib")) {
+      unsigned FromEnd;
+      if (Lib.endswith(StaticExt)) {
+        FromEnd = StaticExt.size() + 1;
+      } else if (Lib.endswith(SharedExt)) {
+        FromEnd = SharedExt.size() + 1;
+      } else {
+        FromEnd = 0;
+      }
+
+      if (FromEnd != 0) {
+        Out = Lib.slice(3, Lib.size() - FromEnd);
+        return true;
+      }
+    }
+
+    return false;
+  };
+  /// Maps Unixizms to the host platform.
+  auto GetComponentLibraryFileName = [&](const StringRef &Lib,
+                                         const bool ForceShared) {
+    std::string LibFileName = Lib;
+    StringRef LibName;
+    if (GetComponentLibraryNameSlice(Lib, LibName)) {
+      if (BuiltSharedLibs || ForceShared) {
+        LibFileName = (SharedPrefix + LibName + "." + SharedExt).str();
+      } else {
+        // default to static
+        LibFileName = (StaticPrefix + LibName + "." + StaticExt).str();
+      }
+    }
+
+    return LibFileName;
+  };
+  /// Get the full path for a possibly shared component library.
+  auto GetComponentLibraryPath = [&](const StringRef &Name,
+                                     const bool ForceShared) {
+    auto LibFileName = GetComponentLibraryFileName(Name, ForceShared);
+    if (BuiltSharedLibs || ForceShared) {
+      return (SharedDir + "/" + LibFileName).str();
+    } else {
+      return (StaticDir + "/" + LibFileName).str();
+    }
+  };
 
   raw_ostream &OS = outs();
   for (int i = 1; i != argc; ++i) {
@@ -277,8 +440,9 @@ int main(int argc, char **argv) {
       } else if (Arg == "--cxxflags") {
         OS << ActiveIncludeOption << ' ' << LLVM_CXXFLAGS << '\n';
       } else if (Arg == "--ldflags") {
-        OS << "-L" << ActiveLibDir << ' ' << LLVM_LDFLAGS
-           << ' ' << LLVM_SYSTEM_LIBS << '\n';
+        OS << "-L" << ActiveLibDir << ' ' << LLVM_LDFLAGS << '\n';
+      } else if (Arg == "--system-libs") {
+        PrintSystemLibs = true;
       } else if (Arg == "--libs") {
         PrintLibs = true;
       } else if (Arg == "--libnames") {
@@ -286,23 +450,55 @@ int main(int argc, char **argv) {
       } else if (Arg == "--libfiles") {
         PrintLibFiles = true;
       } else if (Arg == "--components") {
+        /// If there are missing static archives and a dylib was
+        /// built, print LLVM_DYLIB_COMPONENTS instead of everything
+        /// in the manifest.
+        std::vector<std::string> Components;
         for (unsigned j = 0; j != array_lengthof(AvailableComponents); ++j) {
           // Only include non-installed components when in a development tree.
           if (!AvailableComponents[j].IsInstalled && !IsInDevelopmentTree)
             continue;
 
-          OS << ' ';
-          OS << AvailableComponents[j].Name;
+          Components.push_back(AvailableComponents[j].Name);
+          if (AvailableComponents[j].Library && !IsInDevelopmentTree) {
+            if (DyLibExists &&
+                !sys::fs::exists(GetComponentLibraryPath(
+                    AvailableComponents[j].Library, false))) {
+              Components = GetAllDyLibComponents(IsInDevelopmentTree, true);
+              std::sort(Components.begin(), Components.end());
+              break;
+            }
+          }
+        }
+
+        for (unsigned I = 0; I < Components.size(); ++I) {
+          if (I) {
+            OS << ' ';
+          }
+
+          OS << Components[I];
         }
         OS << '\n';
       } else if (Arg == "--targets-built") {
         OS << LLVM_TARGETS_BUILT << '\n';
       } else if (Arg == "--host-target") {
-        OS << LLVM_DEFAULT_TARGET_TRIPLE << '\n';
+        OS << Triple::normalize(LLVM_DEFAULT_TARGET_TRIPLE) << '\n';
       } else if (Arg == "--build-mode") {
-        OS << LLVM_BUILDMODE << '\n';
+        OS << build_mode << '\n';
+      } else if (Arg == "--assertion-mode") {
+#if defined(NDEBUG)
+        OS << "OFF\n";
+#else
+        OS << "ON\n";
+#endif
+      } else if (Arg == "--build-system") {
+        OS << LLVM_BUILD_SYSTEM << '\n';
+      } else if (Arg == "--has-rtti") {
+        OS << LLVM_HAS_RTTI << '\n';
+      } else if (Arg == "--shared-mode") {
+        PrintSharedMode = true;
       } else if (Arg == "--obj-root") {
-        OS << LLVM_OBJ_ROOT << '\n';
+        OS << ActivePrefix << '\n';
       } else if (Arg == "--src-root") {
         OS << LLVM_SRC_ROOT << '\n';
       } else {
@@ -316,37 +512,93 @@ int main(int argc, char **argv) {
   if (!HasAnyOption)
     usage();
 
-  if (PrintLibs || PrintLibNames || PrintLibFiles) {
+  if (PrintLibs || PrintLibNames || PrintLibFiles || PrintSystemLibs ||
+      PrintSharedMode) {
+
+    if (PrintSharedMode && BuiltSharedLibs) {
+      OS << "shared\n";
+      return 0;
+    }
+
     // If no components were specified, default to "all".
     if (Components.empty())
       Components.push_back("all");
 
     // Construct the list of all the required libraries.
-    std::vector<StringRef> RequiredLibs;
-    ComputeLibsForComponents(Components, RequiredLibs,
-                             /*IncludeNonInstalled=*/IsInDevelopmentTree);
+    bool HasMissing = false;
+    std::vector<std::string> RequiredLibs =
+        ComputeLibsForComponents(Components,
+                                 /*IncludeNonInstalled=*/IsInDevelopmentTree,
+                                 false, &ActiveLibDir, &HasMissing);
 
-    for (unsigned i = 0, e = RequiredLibs.size(); i != e; ++i) {
-      StringRef Lib = RequiredLibs[i];
-      if (i)
-        OS << ' ';
+    if (PrintSharedMode) {
+      std::unordered_set<std::string> FullDyLibComponents;
+      std::vector<std::string> DyLibComponents =
+          GetAllDyLibComponents(IsInDevelopmentTree, false);
 
-      if (PrintLibNames) {
-        OS << Lib;
-      } else if (PrintLibFiles) {
-        OS << ActiveLibDir << '/' << Lib;
-      } else if (PrintLibs) {
-        // If this is a typical library name, include it using -l.
-        if (Lib.startswith("lib") && Lib.endswith(".a")) {
-          OS << "-l" << Lib.slice(3, Lib.size()-2);
-          continue;
+      for (auto &Component : DyLibComponents) {
+        FullDyLibComponents.insert(Component);
+      }
+      DyLibComponents.clear();
+
+      for (auto &Lib : RequiredLibs) {
+        if (!FullDyLibComponents.count(Lib)) {
+          OS << "static\n";
+          return 0;
         }
+      }
+      FullDyLibComponents.clear();
 
-        // Otherwise, print the full path.
-        OS << ActiveLibDir << '/' << Lib;
+      if (HasMissing && DyLibExists) {
+        OS << "shared\n";
+        return 0;
+      } else {
+        OS << "static\n";
+        return 0;
       }
     }
-    OS << '\n';
+
+    if (PrintLibs || PrintLibNames || PrintLibFiles) {
+
+      auto PrintForLib = [&](const StringRef &Lib, const bool ForceShared) {
+        if (PrintLibNames) {
+          OS << GetComponentLibraryFileName(Lib, ForceShared);
+        } else if (PrintLibFiles) {
+          OS << GetComponentLibraryPath(Lib, ForceShared);
+        } else if (PrintLibs) {
+          // If this is a typical library name, include it using -l.
+          StringRef LibName;
+          if (Lib.startswith("lib")) {
+            if (GetComponentLibraryNameSlice(Lib, LibName)) {
+              OS << "-l" << LibName;
+            } else {
+              OS << "-l:" << GetComponentLibraryFileName(Lib, ForceShared);
+            }
+          } else {
+            // Otherwise, print the full path.
+            OS << GetComponentLibraryPath(Lib, ForceShared);
+          }
+        }
+      };
+
+      if (HasMissing && DyLibExists) {
+        PrintForLib(DyLibName, true);
+      } else {
+        for (unsigned i = 0, e = RequiredLibs.size(); i != e; ++i) {
+          auto Lib = RequiredLibs[i];
+          if (i)
+            OS << ' ';
+
+          PrintForLib(Lib, false);
+        }
+      }
+      OS << '\n';
+    }
+
+    // Print SYSTEM_LIBS after --libs.
+    // FIXME: Each LLVM component may have its dependent system libs.
+    if (PrintSystemLibs)
+      OS << LLVM_SYSTEM_LIBS << '\n';
   } else if (!Components.empty()) {
     errs() << "llvm-config: error: components given, but unused\n\n";
     usage();

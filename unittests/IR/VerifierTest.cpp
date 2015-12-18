@@ -7,8 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Analysis/Verifier.h"
-#include "llvm/ADT/OwningPtr.h"
+#include "llvm/IR/Verifier.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -42,24 +41,7 @@ TEST(VerifierTest, Branch_i1) {
   Constant *Zero32 = ConstantInt::get(IntegerType::get(C, 32), 0);
   BI->setOperand(0, Zero32);
 
-  EXPECT_TRUE(verifyFunction(*F, ReturnStatusAction));
-}
-
-TEST(VerifierTest, AliasUnnamedAddr) {
-  LLVMContext &C = getGlobalContext();
-  Module M("M", C);
-  Type *Ty = Type::getInt8Ty(C);
-  Constant *Init = Constant::getNullValue(Ty);
-  GlobalVariable *Aliasee = new GlobalVariable(M, Ty, true,
-                                               GlobalValue::ExternalLinkage,
-                                               Init, "foo");
-  GlobalAlias *GA = new GlobalAlias(Type::getInt8PtrTy(C),
-                                    GlobalValue::ExternalLinkage,
-                                    "bar", Aliasee, &M);
-  GA->setUnnamedAddr(true);
-  std::string Error;
-  EXPECT_TRUE(verifyModule(M, ReturnStatusAction, &Error));
-  EXPECT_TRUE(StringRef(Error).startswith("Alias cannot have unnamed_addr"));
+  EXPECT_TRUE(verifyFunction(*F));
 }
 
 TEST(VerifierTest, InvalidRetAttribute) {
@@ -72,10 +54,58 @@ TEST(VerifierTest, InvalidRetAttribute) {
                                    Attribute::UWTable));
 
   std::string Error;
-  EXPECT_TRUE(verifyModule(M, ReturnStatusAction, &Error));
-  EXPECT_TRUE(StringRef(Error).
-              startswith("Attribute 'uwtable' only applies to functions!"));
+  raw_string_ostream ErrorOS(Error);
+  EXPECT_TRUE(verifyModule(M, &ErrorOS));
+  EXPECT_TRUE(StringRef(ErrorOS.str()).startswith(
+      "Attribute 'uwtable' only applies to functions!"));
 }
+
+TEST(VerifierTest, CrossModuleRef) {
+  LLVMContext &C = getGlobalContext();
+  Module M1("M1", C);
+  Module M2("M2", C);
+  Module M3("M2", C);
+  FunctionType *FTy = FunctionType::get(Type::getInt32Ty(C), /*isVarArg=*/false);
+  Function *F1 = cast<Function>(M1.getOrInsertFunction("foo1", FTy));
+  Function *F2 = cast<Function>(M2.getOrInsertFunction("foo2", FTy));
+  Function *F3 = cast<Function>(M3.getOrInsertFunction("foo3", FTy));
+
+  BasicBlock *Entry1 = BasicBlock::Create(C, "entry", F1);
+  BasicBlock *Entry3 = BasicBlock::Create(C, "entry", F3);
+
+  // BAD: Referencing function in another module
+  CallInst::Create(F2,"call",Entry1);
+
+  // BAD: Referencing personality routine in another module
+  F3->setPersonalityFn(F2);
+
+  // Fill in the body
+  Constant *ConstZero = ConstantInt::get(Type::getInt32Ty(C), 0);
+  ReturnInst::Create(C, ConstZero, Entry1);
+  ReturnInst::Create(C, ConstZero, Entry3);
+
+  std::string Error;
+  raw_string_ostream ErrorOS(Error);
+  EXPECT_FALSE(verifyModule(M2, &ErrorOS));
+  EXPECT_TRUE(verifyModule(M1, &ErrorOS));
+  EXPECT_TRUE(StringRef(ErrorOS.str()).equals(
+      "Referencing function in another module!\n"
+      "  %call = call i32 @foo2()\n"
+      "; ModuleID = 'M1'\n"
+      "i32 ()* @foo2\n"
+      "; ModuleID = 'M2'\n"));
+
+  Error.clear();
+  EXPECT_TRUE(verifyModule(M3, &ErrorOS));
+  EXPECT_TRUE(StringRef(ErrorOS.str()).startswith(
+      "Referencing personality function in another module!"));
+
+  // Erase bad methods to avoid triggering an assertion failure on destruction
+  F1->eraseFromParent();
+  F3->eraseFromParent();
+}
+
+
 
 }
 }

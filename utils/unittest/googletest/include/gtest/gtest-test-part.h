@@ -142,7 +142,7 @@ class GTEST_API_ TestPartResultArray {
 // This interface knows how to report a test part result.
 class TestPartResultReporterInterface {
  public:
-  virtual ~TestPartResultReporterInterface() {}
+  virtual ~TestPartResultReporterInterface();
 
   virtual void ReportTestPartResult(const TestPartResult& result) = 0;
 };
@@ -159,8 +159,8 @@ class GTEST_API_ HasNewFatalFailureHelper
     : public TestPartResultReporterInterface {
  public:
   HasNewFatalFailureHelper();
-  virtual ~HasNewFatalFailureHelper();
-  virtual void ReportTestPartResult(const TestPartResult& result);
+  ~HasNewFatalFailureHelper() override;
+  void ReportTestPartResult(const TestPartResult &result) override;
   bool has_new_fatal_failure() const { return has_new_fatal_failure_; }
  private:
   bool has_new_fatal_failure_;

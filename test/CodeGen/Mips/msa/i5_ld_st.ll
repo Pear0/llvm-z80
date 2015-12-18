@@ -2,6 +2,7 @@
 ; are loads or stores.
 
 ; RUN: llc -march=mips -mattr=+msa,+fp64 < %s | FileCheck %s
+; RUN: llc -march=mipsel -mattr=+msa,+fp64 < %s | FileCheck %s
 
 @llvm_mips_ld_b_ARG = global <16 x i8> <i8 0, i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8, i8 9, i8 10, i8 11, i8 12, i8 13, i8 14, i8 15>, align 16
 @llvm_mips_ld_b_RES = global <16 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0>, align 16
@@ -80,7 +81,7 @@ declare <2 x i64> @llvm.mips.ld.d(i8*, i32) nounwind
 
 define void @llvm_mips_st_b_test() nounwind {
 entry:
-  %0 = load <16 x i8>* @llvm_mips_st_b_ARG
+  %0 = load <16 x i8>, <16 x i8>* @llvm_mips_st_b_ARG
   %1 = bitcast <16 x i8>* @llvm_mips_st_b_RES to i8*
   tail call void @llvm.mips.st.b(<16 x i8> %0, i8* %1, i32 16)
   ret void
@@ -98,7 +99,7 @@ declare void @llvm.mips.st.b(<16 x i8>, i8*, i32) nounwind
 
 define void @llvm_mips_st_h_test() nounwind {
 entry:
-  %0 = load <8 x i16>* @llvm_mips_st_h_ARG
+  %0 = load <8 x i16>, <8 x i16>* @llvm_mips_st_h_ARG
   %1 = bitcast <8 x i16>* @llvm_mips_st_h_RES to i8*
   tail call void @llvm.mips.st.h(<8 x i16> %0, i8* %1, i32 16)
   ret void
@@ -116,7 +117,7 @@ declare void @llvm.mips.st.h(<8 x i16>, i8*, i32) nounwind
 
 define void @llvm_mips_st_w_test() nounwind {
 entry:
-  %0 = load <4 x i32>* @llvm_mips_st_w_ARG
+  %0 = load <4 x i32>, <4 x i32>* @llvm_mips_st_w_ARG
   %1 = bitcast <4 x i32>* @llvm_mips_st_w_RES to i8*
   tail call void @llvm.mips.st.w(<4 x i32> %0, i8* %1, i32 16)
   ret void
@@ -134,7 +135,7 @@ declare void @llvm.mips.st.w(<4 x i32>, i8*, i32) nounwind
 
 define void @llvm_mips_st_d_test() nounwind {
 entry:
-  %0 = load <2 x i64>* @llvm_mips_st_d_ARG
+  %0 = load <2 x i64>, <2 x i64>* @llvm_mips_st_d_ARG
   %1 = bitcast <2 x i64>* @llvm_mips_st_d_RES to i8*
   tail call void @llvm.mips.st.d(<2 x i64> %0, i8* %1, i32 16)
   ret void

@@ -74,7 +74,7 @@
 // define it to 0 to indicate otherwise.
 //
 // If the user's ::std::string and ::string are the same class due to
-// aliasing, he should define GTEST_HAS_GLOBAL_STRING to 0.
+// aliasing, they should define GTEST_HAS_GLOBAL_STRING to 0.
 //
 // If the user doesn't define GTEST_HAS_GLOBAL_STRING, it is defined
 // heuristically.
@@ -910,7 +910,7 @@ class GTEST_API_ TestCase {
 class Environment {
  public:
   // The d'tor is virtual as we need to subclass Environment.
-  virtual ~Environment() {}
+  virtual ~Environment();
 
   // Override this to define how to set up the environment.
   virtual void SetUp() {}
@@ -928,7 +928,7 @@ class Environment {
 // the order the corresponding events are fired.
 class TestEventListener {
  public:
-  virtual ~TestEventListener() {}
+  virtual ~TestEventListener();
 
   // Fired before any test activity starts.
   virtual void OnTestProgramStart(const UnitTest& unit_test) = 0;
@@ -980,22 +980,24 @@ class TestEventListener {
 // comments about each method please see the definition of TestEventListener
 // above.
 class EmptyTestEventListener : public TestEventListener {
+  virtual void anchor();
  public:
-  virtual void OnTestProgramStart(const UnitTest& /*unit_test*/) {}
-  virtual void OnTestIterationStart(const UnitTest& /*unit_test*/,
-                                    int /*iteration*/) {}
-  virtual void OnEnvironmentsSetUpStart(const UnitTest& /*unit_test*/) {}
-  virtual void OnEnvironmentsSetUpEnd(const UnitTest& /*unit_test*/) {}
-  virtual void OnTestCaseStart(const TestCase& /*test_case*/) {}
-  virtual void OnTestStart(const TestInfo& /*test_info*/) {}
-  virtual void OnTestPartResult(const TestPartResult& /*test_part_result*/) {}
-  virtual void OnTestEnd(const TestInfo& /*test_info*/) {}
-  virtual void OnTestCaseEnd(const TestCase& /*test_case*/) {}
-  virtual void OnEnvironmentsTearDownStart(const UnitTest& /*unit_test*/) {}
-  virtual void OnEnvironmentsTearDownEnd(const UnitTest& /*unit_test*/) {}
-  virtual void OnTestIterationEnd(const UnitTest& /*unit_test*/,
-                                  int /*iteration*/) {}
-  virtual void OnTestProgramEnd(const UnitTest& /*unit_test*/) {}
+   void OnTestProgramStart(const UnitTest & /*unit_test*/) override {}
+   void OnTestIterationStart(const UnitTest & /*unit_test*/,
+                             int /*iteration*/) override {}
+   void OnEnvironmentsSetUpStart(const UnitTest & /*unit_test*/) override {}
+   void OnEnvironmentsSetUpEnd(const UnitTest & /*unit_test*/) override {}
+   void OnTestCaseStart(const TestCase & /*test_case*/) override {}
+   void OnTestStart(const TestInfo & /*test_info*/) override {}
+   void OnTestPartResult(const TestPartResult & /*test_part_result*/) override {
+   }
+   void OnTestEnd(const TestInfo & /*test_info*/) override {}
+   void OnTestCaseEnd(const TestCase & /*test_case*/) override {}
+   void OnEnvironmentsTearDownStart(const UnitTest & /*unit_test*/) override {}
+   void OnEnvironmentsTearDownEnd(const UnitTest & /*unit_test*/) override {}
+   void OnTestIterationEnd(const UnitTest & /*unit_test*/,
+                           int /*iteration*/) override {}
+   void OnTestProgramEnd(const UnitTest & /*unit_test*/) override {}
 };
 
 // TestEventListeners lets users add listeners to track events in Google Test.

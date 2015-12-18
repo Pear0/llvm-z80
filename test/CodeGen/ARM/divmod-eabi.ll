@@ -1,6 +1,11 @@
 ; RUN: llc -mtriple armv7-none-eabi %s -o - | FileCheck %s --check-prefix=EABI
+; RUN: llc -mtriple armv7-none-eabihf %s -o - | FileCheck %s --check-prefix=EABI
+; Both "none-eabi" and "androideabi" must lower SREM/UREM to __aeabi_{u,i}divmod
+; RUN: llc -mtriple armv7-linux-androideabi %s -o - | FileCheck %s --check-prefix=EABI
 ; RUN: llc -mtriple armv7-linux-gnueabi %s -o - | FileCheck %s --check-prefix=GNU
 ; RUN: llc -mtriple armv7-apple-darwin %s -o - | FileCheck %s --check-prefix=DARWIN
+; FIXME: long-term, we will use "-apple-macho" and won't need this exception:
+; RUN: llc -mtriple armv7-apple-darwin-eabi %s -o - | FileCheck %s --check-prefix=DARWIN
 
 define signext i16 @f16(i16 signext %a, i16 signext %b) {
 ; EABI-LABEL: f16:
@@ -184,9 +189,9 @@ define i32 @g4(i32 %a, i32 %b) {
 ; DARWIN-LABEL: g4:
 entry:
   %div = sdiv i32 %a, %b
-; EABI: __aeabi_idivmod
+; EABI: __aeabi_idiv{{$}}
 ; EABI: mov [[div:r[0-9]+]], r0
-; GNU __aeabi_idiv
+; GNU: __aeabi_idiv
 ; GNU: mov [[sum:r[0-9]+]], r0
 ; DARWIN: ___divsi3
 ; DARWIN: mov [[sum:r[0-9]+]], r0

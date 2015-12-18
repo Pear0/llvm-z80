@@ -2,6 +2,7 @@
 ; There are lots of these so this covers those beginning with 'i'
 
 ; RUN: llc -march=mips -mattr=+msa,+fp64 < %s | FileCheck %s
+; RUN: llc -march=mipsel -mattr=+msa,+fp64 < %s | FileCheck %s
 
 @llvm_mips_ilvev_b_ARG1 = global <16 x i8> <i8 0, i8 1, i8 2, i8 3, i8 4, i8 5, i8 6, i8 7, i8 8, i8 9, i8 10, i8 11, i8 12, i8 13, i8 14, i8 15>, align 16
 @llvm_mips_ilvev_b_ARG2 = global <16 x i8> <i8 16, i8 17, i8 18, i8 19, i8 20, i8 21, i8 22, i8 23, i8 24, i8 25, i8 26, i8 27, i8 28, i8 29, i8 30, i8 31>, align 16
@@ -9,8 +10,8 @@
 
 define void @llvm_mips_ilvev_b_test() nounwind {
 entry:
-  %0 = load <16 x i8>* @llvm_mips_ilvev_b_ARG1
-  %1 = load <16 x i8>* @llvm_mips_ilvev_b_ARG2
+  %0 = load <16 x i8>, <16 x i8>* @llvm_mips_ilvev_b_ARG1
+  %1 = load <16 x i8>, <16 x i8>* @llvm_mips_ilvev_b_ARG2
   %2 = tail call <16 x i8> @llvm.mips.ilvev.b(<16 x i8> %0, <16 x i8> %1)
   store <16 x i8> %2, <16 x i8>* @llvm_mips_ilvev_b_RES
   ret void
@@ -31,8 +32,8 @@ declare <16 x i8> @llvm.mips.ilvev.b(<16 x i8>, <16 x i8>) nounwind
 
 define void @llvm_mips_ilvev_h_test() nounwind {
 entry:
-  %0 = load <8 x i16>* @llvm_mips_ilvev_h_ARG1
-  %1 = load <8 x i16>* @llvm_mips_ilvev_h_ARG2
+  %0 = load <8 x i16>, <8 x i16>* @llvm_mips_ilvev_h_ARG1
+  %1 = load <8 x i16>, <8 x i16>* @llvm_mips_ilvev_h_ARG2
   %2 = tail call <8 x i16> @llvm.mips.ilvev.h(<8 x i16> %0, <8 x i16> %1)
   store <8 x i16> %2, <8 x i16>* @llvm_mips_ilvev_h_RES
   ret void
@@ -53,8 +54,8 @@ declare <8 x i16> @llvm.mips.ilvev.h(<8 x i16>, <8 x i16>) nounwind
 
 define void @llvm_mips_ilvev_w_test() nounwind {
 entry:
-  %0 = load <4 x i32>* @llvm_mips_ilvev_w_ARG1
-  %1 = load <4 x i32>* @llvm_mips_ilvev_w_ARG2
+  %0 = load <4 x i32>, <4 x i32>* @llvm_mips_ilvev_w_ARG1
+  %1 = load <4 x i32>, <4 x i32>* @llvm_mips_ilvev_w_ARG2
   %2 = tail call <4 x i32> @llvm.mips.ilvev.w(<4 x i32> %0, <4 x i32> %1)
   store <4 x i32> %2, <4 x i32>* @llvm_mips_ilvev_w_RES
   ret void
@@ -75,8 +76,8 @@ declare <4 x i32> @llvm.mips.ilvev.w(<4 x i32>, <4 x i32>) nounwind
 
 define void @llvm_mips_ilvev_d_test() nounwind {
 entry:
-  %0 = load <2 x i64>* @llvm_mips_ilvev_d_ARG1
-  %1 = load <2 x i64>* @llvm_mips_ilvev_d_ARG2
+  %0 = load <2 x i64>, <2 x i64>* @llvm_mips_ilvev_d_ARG1
+  %1 = load <2 x i64>, <2 x i64>* @llvm_mips_ilvev_d_ARG2
   %2 = tail call <2 x i64> @llvm.mips.ilvev.d(<2 x i64> %0, <2 x i64> %1)
   store <2 x i64> %2, <2 x i64>* @llvm_mips_ilvev_d_RES
   ret void
@@ -97,8 +98,8 @@ declare <2 x i64> @llvm.mips.ilvev.d(<2 x i64>, <2 x i64>) nounwind
 
 define void @llvm_mips_ilvl_b_test() nounwind {
 entry:
-  %0 = load <16 x i8>* @llvm_mips_ilvl_b_ARG1
-  %1 = load <16 x i8>* @llvm_mips_ilvl_b_ARG2
+  %0 = load <16 x i8>, <16 x i8>* @llvm_mips_ilvl_b_ARG1
+  %1 = load <16 x i8>, <16 x i8>* @llvm_mips_ilvl_b_ARG2
   %2 = tail call <16 x i8> @llvm.mips.ilvl.b(<16 x i8> %0, <16 x i8> %1)
   store <16 x i8> %2, <16 x i8>* @llvm_mips_ilvl_b_RES
   ret void
@@ -119,8 +120,8 @@ declare <16 x i8> @llvm.mips.ilvl.b(<16 x i8>, <16 x i8>) nounwind
 
 define void @llvm_mips_ilvl_h_test() nounwind {
 entry:
-  %0 = load <8 x i16>* @llvm_mips_ilvl_h_ARG1
-  %1 = load <8 x i16>* @llvm_mips_ilvl_h_ARG2
+  %0 = load <8 x i16>, <8 x i16>* @llvm_mips_ilvl_h_ARG1
+  %1 = load <8 x i16>, <8 x i16>* @llvm_mips_ilvl_h_ARG2
   %2 = tail call <8 x i16> @llvm.mips.ilvl.h(<8 x i16> %0, <8 x i16> %1)
   store <8 x i16> %2, <8 x i16>* @llvm_mips_ilvl_h_RES
   ret void
@@ -141,8 +142,8 @@ declare <8 x i16> @llvm.mips.ilvl.h(<8 x i16>, <8 x i16>) nounwind
 
 define void @llvm_mips_ilvl_w_test() nounwind {
 entry:
-  %0 = load <4 x i32>* @llvm_mips_ilvl_w_ARG1
-  %1 = load <4 x i32>* @llvm_mips_ilvl_w_ARG2
+  %0 = load <4 x i32>, <4 x i32>* @llvm_mips_ilvl_w_ARG1
+  %1 = load <4 x i32>, <4 x i32>* @llvm_mips_ilvl_w_ARG2
   %2 = tail call <4 x i32> @llvm.mips.ilvl.w(<4 x i32> %0, <4 x i32> %1)
   store <4 x i32> %2, <4 x i32>* @llvm_mips_ilvl_w_RES
   ret void
@@ -163,8 +164,8 @@ declare <4 x i32> @llvm.mips.ilvl.w(<4 x i32>, <4 x i32>) nounwind
 
 define void @llvm_mips_ilvl_d_test() nounwind {
 entry:
-  %0 = load <2 x i64>* @llvm_mips_ilvl_d_ARG1
-  %1 = load <2 x i64>* @llvm_mips_ilvl_d_ARG2
+  %0 = load <2 x i64>, <2 x i64>* @llvm_mips_ilvl_d_ARG1
+  %1 = load <2 x i64>, <2 x i64>* @llvm_mips_ilvl_d_ARG2
   %2 = tail call <2 x i64> @llvm.mips.ilvl.d(<2 x i64> %0, <2 x i64> %1)
   store <2 x i64> %2, <2 x i64>* @llvm_mips_ilvl_d_RES
   ret void
@@ -185,8 +186,8 @@ declare <2 x i64> @llvm.mips.ilvl.d(<2 x i64>, <2 x i64>) nounwind
 
 define void @llvm_mips_ilvod_b_test() nounwind {
 entry:
-  %0 = load <16 x i8>* @llvm_mips_ilvod_b_ARG1
-  %1 = load <16 x i8>* @llvm_mips_ilvod_b_ARG2
+  %0 = load <16 x i8>, <16 x i8>* @llvm_mips_ilvod_b_ARG1
+  %1 = load <16 x i8>, <16 x i8>* @llvm_mips_ilvod_b_ARG2
   %2 = tail call <16 x i8> @llvm.mips.ilvod.b(<16 x i8> %0, <16 x i8> %1)
   store <16 x i8> %2, <16 x i8>* @llvm_mips_ilvod_b_RES
   ret void
@@ -207,8 +208,8 @@ declare <16 x i8> @llvm.mips.ilvod.b(<16 x i8>, <16 x i8>) nounwind
 
 define void @llvm_mips_ilvod_h_test() nounwind {
 entry:
-  %0 = load <8 x i16>* @llvm_mips_ilvod_h_ARG1
-  %1 = load <8 x i16>* @llvm_mips_ilvod_h_ARG2
+  %0 = load <8 x i16>, <8 x i16>* @llvm_mips_ilvod_h_ARG1
+  %1 = load <8 x i16>, <8 x i16>* @llvm_mips_ilvod_h_ARG2
   %2 = tail call <8 x i16> @llvm.mips.ilvod.h(<8 x i16> %0, <8 x i16> %1)
   store <8 x i16> %2, <8 x i16>* @llvm_mips_ilvod_h_RES
   ret void
@@ -229,8 +230,8 @@ declare <8 x i16> @llvm.mips.ilvod.h(<8 x i16>, <8 x i16>) nounwind
 
 define void @llvm_mips_ilvod_w_test() nounwind {
 entry:
-  %0 = load <4 x i32>* @llvm_mips_ilvod_w_ARG1
-  %1 = load <4 x i32>* @llvm_mips_ilvod_w_ARG2
+  %0 = load <4 x i32>, <4 x i32>* @llvm_mips_ilvod_w_ARG1
+  %1 = load <4 x i32>, <4 x i32>* @llvm_mips_ilvod_w_ARG2
   %2 = tail call <4 x i32> @llvm.mips.ilvod.w(<4 x i32> %0, <4 x i32> %1)
   store <4 x i32> %2, <4 x i32>* @llvm_mips_ilvod_w_RES
   ret void
@@ -251,8 +252,8 @@ declare <4 x i32> @llvm.mips.ilvod.w(<4 x i32>, <4 x i32>) nounwind
 
 define void @llvm_mips_ilvod_d_test() nounwind {
 entry:
-  %0 = load <2 x i64>* @llvm_mips_ilvod_d_ARG1
-  %1 = load <2 x i64>* @llvm_mips_ilvod_d_ARG2
+  %0 = load <2 x i64>, <2 x i64>* @llvm_mips_ilvod_d_ARG1
+  %1 = load <2 x i64>, <2 x i64>* @llvm_mips_ilvod_d_ARG2
   %2 = tail call <2 x i64> @llvm.mips.ilvod.d(<2 x i64> %0, <2 x i64> %1)
   store <2 x i64> %2, <2 x i64>* @llvm_mips_ilvod_d_RES
   ret void
@@ -273,8 +274,8 @@ declare <2 x i64> @llvm.mips.ilvod.d(<2 x i64>, <2 x i64>) nounwind
 
 define void @llvm_mips_ilvr_b_test() nounwind {
 entry:
-  %0 = load <16 x i8>* @llvm_mips_ilvr_b_ARG1
-  %1 = load <16 x i8>* @llvm_mips_ilvr_b_ARG2
+  %0 = load <16 x i8>, <16 x i8>* @llvm_mips_ilvr_b_ARG1
+  %1 = load <16 x i8>, <16 x i8>* @llvm_mips_ilvr_b_ARG2
   %2 = tail call <16 x i8> @llvm.mips.ilvr.b(<16 x i8> %0, <16 x i8> %1)
   store <16 x i8> %2, <16 x i8>* @llvm_mips_ilvr_b_RES
   ret void
@@ -295,8 +296,8 @@ declare <16 x i8> @llvm.mips.ilvr.b(<16 x i8>, <16 x i8>) nounwind
 
 define void @llvm_mips_ilvr_h_test() nounwind {
 entry:
-  %0 = load <8 x i16>* @llvm_mips_ilvr_h_ARG1
-  %1 = load <8 x i16>* @llvm_mips_ilvr_h_ARG2
+  %0 = load <8 x i16>, <8 x i16>* @llvm_mips_ilvr_h_ARG1
+  %1 = load <8 x i16>, <8 x i16>* @llvm_mips_ilvr_h_ARG2
   %2 = tail call <8 x i16> @llvm.mips.ilvr.h(<8 x i16> %0, <8 x i16> %1)
   store <8 x i16> %2, <8 x i16>* @llvm_mips_ilvr_h_RES
   ret void
@@ -317,8 +318,8 @@ declare <8 x i16> @llvm.mips.ilvr.h(<8 x i16>, <8 x i16>) nounwind
 
 define void @llvm_mips_ilvr_w_test() nounwind {
 entry:
-  %0 = load <4 x i32>* @llvm_mips_ilvr_w_ARG1
-  %1 = load <4 x i32>* @llvm_mips_ilvr_w_ARG2
+  %0 = load <4 x i32>, <4 x i32>* @llvm_mips_ilvr_w_ARG1
+  %1 = load <4 x i32>, <4 x i32>* @llvm_mips_ilvr_w_ARG2
   %2 = tail call <4 x i32> @llvm.mips.ilvr.w(<4 x i32> %0, <4 x i32> %1)
   store <4 x i32> %2, <4 x i32>* @llvm_mips_ilvr_w_RES
   ret void
@@ -339,8 +340,8 @@ declare <4 x i32> @llvm.mips.ilvr.w(<4 x i32>, <4 x i32>) nounwind
 
 define void @llvm_mips_ilvr_d_test() nounwind {
 entry:
-  %0 = load <2 x i64>* @llvm_mips_ilvr_d_ARG1
-  %1 = load <2 x i64>* @llvm_mips_ilvr_d_ARG2
+  %0 = load <2 x i64>, <2 x i64>* @llvm_mips_ilvr_d_ARG1
+  %1 = load <2 x i64>, <2 x i64>* @llvm_mips_ilvr_d_ARG2
   %2 = tail call <2 x i64> @llvm.mips.ilvr.d(<2 x i64> %0, <2 x i64> %1)
   store <2 x i64> %2, <2 x i64>* @llvm_mips_ilvr_d_RES
   ret void

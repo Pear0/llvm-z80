@@ -19,7 +19,7 @@
 #ifndef LLVM_C_EXECUTIONENGINE_H
 #define LLVM_C_EXECUTIONENGINE_H
 
-#include "llvm-c/Core.h"
+#include "llvm-c/Types.h"
 #include "llvm-c/Target.h"
 #include "llvm-c/TargetMachine.h"
 
@@ -34,7 +34,6 @@ extern "C" {
  * @{
  */
 
-void LLVMLinkInJIT(void);
 void LLVMLinkInMCJIT(void);
 void LLVMLinkInInterpreter(void);
 
@@ -163,11 +162,17 @@ void *LLVMRecompileAndRelinkFunction(LLVMExecutionEngineRef EE,
                                      LLVMValueRef Fn);
 
 LLVMTargetDataRef LLVMGetExecutionEngineTargetData(LLVMExecutionEngineRef EE);
+LLVMTargetMachineRef
+LLVMGetExecutionEngineTargetMachine(LLVMExecutionEngineRef EE);
 
 void LLVMAddGlobalMapping(LLVMExecutionEngineRef EE, LLVMValueRef Global,
                           void* Addr);
 
 void *LLVMGetPointerToGlobal(LLVMExecutionEngineRef EE, LLVMValueRef Global);
+
+uint64_t LLVMGetGlobalValueAddress(LLVMExecutionEngineRef EE, const char *Name);
+
+uint64_t LLVMGetFunctionAddress(LLVMExecutionEngineRef EE, const char *Name);
 
 /*===-- Operations on memory managers -------------------------------------===*/
 

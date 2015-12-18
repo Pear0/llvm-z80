@@ -12,11 +12,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef MCJIT_TEST_API_COMMON_H
-#define MCJIT_TEST_API_COMMON_H
+#ifndef LLVM_UNITTESTS_EXECUTIONENGINE_MCJIT_MCJITTESTAPICOMMON_H
+#define LLVM_UNITTESTS_EXECUTIONENGINE_MCJIT_MCJITTESTAPICOMMON_H
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/Triple.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/Support/Host.h"
 #include "llvm/Support/TargetSelect.h"
 
@@ -38,6 +40,10 @@ protected:
   {
     InitializeNativeTarget();
     InitializeNativeTargetAsmPrinter();
+
+    // FIXME: It isn't at all clear why this is necesasry, but without it we
+    // fail to initialize the AssumptionCacheTracker.
+    initializeAssumptionCacheTrackerPass(*PassRegistry::getPassRegistry());
 
 #ifdef LLVM_ON_WIN32
     // On Windows, generate ELF objects by specifying "-elf" in triple
@@ -71,10 +77,15 @@ protected:
   /// Returns true if the host OS is known to support MCJIT
   bool OSSupportsMCJIT() {
     Triple Host(HostTriple);
+
+    if (std::find(UnsupportedEnvironments.begin(), UnsupportedEnvironments.end(),
+                  Host.getEnvironment()) != UnsupportedEnvironments.end())
+      return false;
+
     if (std::find(UnsupportedOSs.begin(), UnsupportedOSs.end(), Host.getOS())
-        == UnsupportedOSs.end()) {
+        == UnsupportedOSs.end())
       return true;
-    }
+
     return false;
   }
 
@@ -83,9 +94,10 @@ protected:
   SmallVector<Triple::ArchType, 1> HasSubArchs;
   SmallVector<std::string, 2> SupportedSubArchs; // We need to own the memory
   SmallVector<Triple::OSType, 4> UnsupportedOSs;
+  SmallVector<Triple::EnvironmentType, 1> UnsupportedEnvironments;
 };
 
 } // namespace llvm
 
-#endif // MCJIT_TEST_API_COMMON_H
+#endif
 

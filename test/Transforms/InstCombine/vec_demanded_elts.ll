@@ -1,4 +1,5 @@
 ; RUN: opt < %s -instcombine -S | FileCheck %s
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 
 define i16 @test1(float %f) {
 entry:
@@ -109,7 +110,7 @@ define void @vac(<4 x float>* nocapture %a) nounwind {
 ; CHECK-NOT: load
 ; CHECK: ret
 entry:
-	%tmp1 = load <4 x float>* %a		; <<4 x float>> [#uses=1]
+	%tmp1 = load <4 x float>, <4 x float>* %a		; <<4 x float>> [#uses=1]
 	%vecins = insertelement <4 x float> %tmp1, float 0.000000e+00, i32 0	; <<4 x float>> [#uses=1]
 	%vecins4 = insertelement <4 x float> %vecins, float 0.000000e+00, i32 1; <<4 x float>> [#uses=1]
 	%vecins6 = insertelement <4 x float> %vecins4, float 0.000000e+00, i32 2; <<4 x float>> [#uses=1]
@@ -136,22 +137,6 @@ declare i32 @llvm.x86.sse2.cvtsd2si(<2 x double>)
 declare i64 @llvm.x86.sse2.cvtsd2si64(<2 x double>)
 declare i32 @llvm.x86.sse2.cvttsd2si(<2 x double>)
 declare i64 @llvm.x86.sse2.cvttsd2si64(<2 x double>)
-
-; <rdar://problem/6945110>
-define <4 x i32> @kernel3_vertical(<4 x i16> * %src, <8 x i16> * %foo) nounwind {
-entry:
-	%tmp = load <4 x i16>* %src
-	%tmp1 = load <8 x i16>* %foo
-; CHECK: %tmp2 = shufflevector
-	%tmp2 = shufflevector <4 x i16> %tmp, <4 x i16> undef, <8 x i32> <i32 0, i32 1, i32 2, i32 3, i32 undef, i32 undef, i32 undef, i32 undef>
-; pmovzxwd ignores the upper 64-bits of its input; -instcombine should remove this shuffle:
-; CHECK-NOT: shufflevector
-	%tmp3 = shufflevector <8 x i16> %tmp1, <8 x i16> %tmp2, <8 x i32> <i32 8, i32 9, i32 10, i32 11, i32 4, i32 5, i32 6, i32 7>
-; CHECK-NEXT: pmovzxwd
-	%0 = call <4 x i32> @llvm.x86.sse41.pmovzxwd(<8 x i16> %tmp3)
-	ret <4 x i32> %0
-}
-declare <4 x i32> @llvm.x86.sse41.pmovzxwd(<8 x i16>) nounwind readnone
 
 define <4 x float> @dead_shuffle_elt(<4 x float> %x, <2 x float> %y) nounwind {
 entry:
@@ -209,4 +194,75 @@ define <4 x float> @test_select(float %f, float %g) {
   ret <4 x float> %ret
 }
 
+declare <4 x float> @llvm.x86.avx.vpermilvar.ps(<4 x float>, <4 x i32>)
+define <4 x float> @test_vpermilvar_ps(<4 x float> %v) {
+; CHECK-LABEL: @test_vpermilvar_ps(
+; CHECK: shufflevector <4 x float> %v, <4 x float> undef, <4 x i32> <i32 3, i32 2, i32 1, i32 0>
+  %a = tail call <4 x float> @llvm.x86.avx.vpermilvar.ps(<4 x float> %v, <4 x i32> <i32 3, i32 2, i32 1, i32 0>)
+  ret <4 x float> %a
+}
 
+declare <8 x float> @llvm.x86.avx.vpermilvar.ps.256(<8 x float>, <8 x i32>)
+define <8 x float> @test_vpermilvar_ps_256(<8 x float> %v) {
+; CHECK-LABEL: @test_vpermilvar_ps_256(
+; CHECK: shufflevector <8 x float> %v, <8 x float> undef, <8 x i32> <i32 3, i32 2, i32 1, i32 0, i32 7, i32 6, i32 5, i32 4>
+  %a = tail call <8 x float> @llvm.x86.avx.vpermilvar.ps.256(<8 x float> %v, <8 x i32> <i32 7, i32 6, i32 5, i32 4, i32 3, i32 2, i32 1, i32 0>)
+  ret <8 x float> %a
+}
+
+declare <2 x double> @llvm.x86.avx.vpermilvar.pd(<2 x double>, <2 x i64>)
+define <2 x double> @test_vpermilvar_pd(<2 x double> %v) {
+; CHECK-LABEL: @test_vpermilvar_pd(
+; CHECK: shufflevector <2 x double> %v, <2 x double> undef, <2 x i32> <i32 1, i32 0>
+  %a = tail call <2 x double> @llvm.x86.avx.vpermilvar.pd(<2 x double> %v, <2 x i64> <i64 2, i64 0>)
+  ret <2 x double> %a
+}
+
+declare <4 x double> @llvm.x86.avx.vpermilvar.pd.256(<4 x double>, <4 x i64>)
+define <4 x double> @test_vpermilvar_pd_256(<4 x double> %v) {
+; CHECK-LABEL: @test_vpermilvar_pd_256(
+; CHECK: shufflevector <4 x double> %v, <4 x double> undef, <4 x i32> <i32 1, i32 0, i32 3, i32 2>
+  %a = tail call <4 x double> @llvm.x86.avx.vpermilvar.pd.256(<4 x double> %v, <4 x i64> <i64 3, i64 1, i64 2, i64 0>)
+  ret <4 x double> %a
+}
+
+define <4 x float> @test_vpermilvar_ps_zero(<4 x float> %v) {
+; CHECK-LABEL: @test_vpermilvar_ps_zero(
+; CHECK: shufflevector <4 x float> %v, <4 x float> undef, <4 x i32> zeroinitializer
+  %a = tail call <4 x float> @llvm.x86.avx.vpermilvar.ps(<4 x float> %v, <4 x i32> zeroinitializer)
+  ret <4 x float> %a
+}
+
+define <8 x float> @test_vpermilvar_ps_256_zero(<8 x float> %v) {
+; CHECK-LABEL: @test_vpermilvar_ps_256_zero(
+; CHECK: shufflevector <8 x float> %v, <8 x float> undef, <8 x i32> <i32 0, i32 0, i32 0, i32 0, i32 4, i32 4, i32 4, i32 4>
+  %a = tail call <8 x float> @llvm.x86.avx.vpermilvar.ps.256(<8 x float> %v, <8 x i32> zeroinitializer)
+  ret <8 x float> %a
+}
+
+define <2 x double> @test_vpermilvar_pd_zero(<2 x double> %v) {
+; CHECK-LABEL: @test_vpermilvar_pd_zero(
+; CHECK: shufflevector <2 x double> %v, <2 x double> undef, <2 x i32> zeroinitializer
+  %a = tail call <2 x double> @llvm.x86.avx.vpermilvar.pd(<2 x double> %v, <2 x i64> zeroinitializer)
+  ret <2 x double> %a
+}
+
+define <4 x double> @test_vpermilvar_pd_256_zero(<4 x double> %v) {
+; CHECK-LABEL: @test_vpermilvar_pd_256_zero(
+; CHECK: shufflevector <4 x double> %v, <4 x double> undef, <4 x i32> <i32 0, i32 0, i32 2, i32 2>
+  %a = tail call <4 x double> @llvm.x86.avx.vpermilvar.pd.256(<4 x double> %v, <4 x i64> zeroinitializer)
+  ret <4 x double> %a
+}
+
+define <2 x i64> @PR24922(<2 x i64> %v) {
+; CHECK-LABEL: @PR24922
+; CHECK: select <2 x i1> 
+;
+; Check that instcombine doesn't wrongly fold the select statement into a
+; ret <2 x i64> %v
+;
+; FIXME: We should be able to simplify the ConstantExpr in the select mask.
+entry:
+  %result = select <2 x i1> <i1 icmp eq (i64 extractelement (<2 x i64> bitcast (<4 x i32> <i32 15, i32 15, i32 15, i32 15> to <2 x i64>), i64 0), i64 0), i1 true>, <2 x i64> %v, <2 x i64> zeroinitializer
+  ret <2 x i64> %result
+}

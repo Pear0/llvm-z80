@@ -30,6 +30,20 @@ SUB_CPPFLAGS := ${CPP.BaseFlags}
 SUB_CFLAGS   := ${CPP.BaseFlags} ${C.Flags}
 SUB_CXXFLAGS := ${CPP.BaseFlags} ${CXX.Flags}
 
+# Override LIBS with TARGET's LIBS for cross compilation.
+# FIXME: Host's llvm-config is not generated. It's for target's.
+ifneq ($(TARGET_LIBS), )
+  LLVM_SYSTEM_LIBS := $(TARGET_LIBS)
+else
+  LLVM_SYSTEM_LIBS := $(LIBS)
+endif
+
+ifneq ($(REQUIRES_RTTI), 1)
+  LLVM_HAS_RTTI := NO
+else
+  LLVM_HAS_RTTI := YES
+endif
+
 # This is blank for now.  We need to be careful about adding stuff here:
 # LDFLAGS tend not to be portable, and we don't currently require the
 # user to use libtool when linking against LLVM.
@@ -51,9 +65,23 @@ $(ObjDir)/BuildVariables.inc: $(BUILDVARIABLES_SRCPATH) Makefile $(ObjDir)/.dir
 	  >> temp.sed
 	$(Verb) $(ECHO) 's/@LLVM_BUILDMODE@/$(subst /,\/,$(BuildMode))/' \
 	  >> temp.sed
-	$(Verb) $(ECHO) 's/@LLVM_SYSTEM_LIBS@/$(subst /,\/,$(LIBS))/' \
+	$(Verb) $(ECHO) 's/@LLVM_LIBDIR_SUFFIX@//' \
+	  >> temp.sed
+	$(Verb) $(ECHO) 's/@LLVM_SYSTEM_LIBS@/$(subst /,\/,$(LLVM_SYSTEM_LIBS))/' \
 	  >> temp.sed
 	$(Verb) $(ECHO) 's/@LLVM_TARGETS_BUILT@/$(subst /,\/,$(TARGETS_TO_BUILD))/' \
+	  >> temp.sed
+	$(if $(filter-out $(ENABLE_SHARED),0),\
+	  $(Verb) $(ECHO) 's/@LLVM_BUILD_LLVM_DYLIB@/ON/',\
+	  $(Verb) $(ECHO) 's/@LLVM_BUILD_LLVM_DYLIB@/OFF/') \
+	  >> temp.sed
+	$(Verb) $(ECHO) 's/@LLVM_ENABLE_SHARED@/OFF/' \
+	  >> temp.sed
+	$(Verb) $(ECHO) 's/@LLVM_DYLIB_COMPONENTS@/all/' \
+	  >> temp.sed
+	$(Verb) $(ECHO) 's/@LLVM_BUILD_SYSTEM@/autoconf/' \
+	  >> temp.sed
+	$(Verb) $(ECHO) 's/@LLVM_HAS_RTTI@/$(LLVM_HAS_RTTI)/' \
 	  >> temp.sed
 	$(Verb) $(SED) -f temp.sed < $< > $@
 	$(Verb) $(RM) temp.sed

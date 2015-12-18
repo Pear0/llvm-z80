@@ -14,6 +14,11 @@ This section describes any quirks of instruction selection for MSA. For
 example, two instructions might be equally valid for some given IR and one is
 chosen in preference to the other.
 
+bclri.b:
+        It is not possible to emit bclri.b since andi.b covers exactly the
+        same cases. andi.b should use fractionally less power than bclri.b in
+        most hardware implementations so it is used in preference to bclri.b.
+
 vshf.w:
         It is not possible to emit vshf.w when the shuffle description is
         constant since shf.w covers exactly the same cases. shf.w is used
@@ -57,11 +62,16 @@ binsri.[bhwd],  binsli.[bhwd]:
 
 bmnz.v, bmz.v, bsel.v:
         These three operations differ only in the operand that is tied to the
-        result.
+        result and the order of the operands.
         It is (currently) not possible to emit bmz.v, or bsel.v since bmnz.v is
         the same operation and will be emitted instead.
         In future, the compiler may choose between these three instructions
         according to register allocation.
+        These three operations can be very confusing so here is a mapping
+        between the instructions and the vselect node in one place:
+                bmz.v  wd, ws, wt/i8 -> (vselect wt/i8, wd, ws)
+                bmnz.v wd, ws, wt/i8 -> (vselect wt/i8, ws, wd)
+                bsel.v wd, ws, wt/i8 -> (vselect wd, wt/i8, ws)
 
 bmnzi.b, bmzi.b:
         Like their non-immediate counterparts, bmnzi.v and bmzi.v are the same

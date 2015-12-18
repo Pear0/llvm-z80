@@ -1,5 +1,8 @@
 @ RUN: not llvm-mc -triple=thumbv7-apple-darwin < %s 2> %t
-@ RUN: FileCheck --check-prefix=CHECK-ERRORS < %t %s
+@ RUN: FileCheck --check-prefix=CHECK-ERRORS --check-prefix=CHECK-ERRORS-V7 < %t %s
+
+@ RUN: not llvm-mc -triple=thumbv8-apple-darwin < %s 2> %t
+@ RUN: FileCheck --check-prefix=CHECK-ERRORS --check-prefix=CHECK-ERRORS-V8 < %t %s
 
 @ Ill-formed IT block instructions.
         itet eq
@@ -41,7 +44,8 @@
 @ CHECK-ERRORS: error: invalid operand for instruction
 @ CHECK-ERRORS: error: invalid operand for instruction
 @ CHECK-ERRORS: error: immediate operand must be in the range [0,15]
-@ CHECK-ERRORS: error: immediate operand must be in the range [0,15]
+@ CHECK-ERRORS-V7: error: immediate operand must be in the range [0,15]
+@ CHECK-ERRORS-V8: error: invalid operand for instruction
 
         isb  #-1
         isb  #16
@@ -70,3 +74,31 @@
 @ CHECK-ERRORS: error: branch target out of range
 @ CHECK-ERRORS: error: branch target out of range
 @ CHECK-ERRORS: error: branch target out of range
+
+foo2:
+        mov r0, foo2
+        movw r0, foo2
+        movt r0, foo2
+@ CHECK-ERRORS: error: immediate expression for mov requires :lower16: or :upper16
+@ CHECK-ERRORS:                 ^
+@ CHECK-ERRORS: error: immediate expression for mov requires :lower16: or :upper16
+@ CHECK-ERRORS:                  ^
+@ CHECK-ERRORS: error: immediate expression for mov requires :lower16: or :upper16
+@ CHECK-ERRORS:                  ^
+
+        and sp, r1, #80008000
+        and pc, r1, #80008000
+@ CHECK-ERRORS: error: invalid operand for instruction
+@ CHECK-ERRORS: error: invalid operand for instruction
+
+        ssat r0, #1, r0, asr #32
+        usat r0, #1, r0, asr #32
+@ CHECK-ERRORS: error: 'asr #32' shift amount not allowed in Thumb mode
+@ CHECK-ERRORS: error: 'asr #32' shift amount not allowed in Thumb mode
+
+        @ PC is not valid as shifted-rGPR
+        sbc.w r2, r7, pc, lsr #16
+        and.w r2, r7, pc, lsr #16
+@ CHECK-ERRORS: error: invalid operand for instruction
+@ CHECK-ERRORS: error: invalid operand for instruction
+

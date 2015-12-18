@@ -235,12 +235,12 @@ TYPED_TEST(BitVectorTest, PortableBitMask) {
   const uint32_t Mask1[] = { 0x80000000, 6, 5 };
 
   A.resize(10);
-  A.setBitsInMask(Mask1, 3);
+  A.setBitsInMask(Mask1, 1);
   EXPECT_EQ(10u, A.size());
   EXPECT_FALSE(A.test(0));
 
   A.resize(32);
-  A.setBitsInMask(Mask1, 3);
+  A.setBitsInMask(Mask1, 1);
   EXPECT_FALSE(A.test(0));
   EXPECT_TRUE(A.test(31));
   EXPECT_EQ(1u, A.count());
@@ -356,6 +356,12 @@ TYPED_TEST(BitVectorTest, RangeOps) {
   EXPECT_TRUE( E.test(1));
   EXPECT_TRUE( E.test(32));
   EXPECT_FALSE(E.test(33));
+
+  TypeParam BufferOverrun;
+  unsigned size = sizeof(unsigned long) * 8;
+  BufferOverrun.resize(size);
+  BufferOverrun.reset(0, size);
+  BufferOverrun.set(0, size);
 }
 
 TYPED_TEST(BitVectorTest, CompoundTestReset) {

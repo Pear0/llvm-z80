@@ -527,11 +527,102 @@
 	basr	%r14,%r9
 	basr	%r15,%r1
 
+#CHECK: bcr	0, %r0			# encoding: [0x07,0x00]
+#CHECK:	bcr	0, %r15			# encoding: [0x07,0x0f]
 
+	bcr	0, %r0
+	bcr	0, %r15
+
+#CHECK:	bcr	1, %r7			# encoding: [0x07,0x17]
+#CHECK:	bor	%r15			# encoding: [0x07,0x1f]
+
+	bcr	1, %r7
+	bor	%r15
+
+#CHECK:	bcr	2, %r7			# encoding: [0x07,0x27]
+#CHECK:	bhr	%r15			# encoding: [0x07,0x2f]
+
+	bcr	2, %r7
+	bhr	%r15
+
+#CHECK:	bcr	3, %r7			# encoding: [0x07,0x37]
+#CHECK:	bnler	%r15			# encoding: [0x07,0x3f]
+
+	bcr	3, %r7
+	bnler	%r15
+
+#CHECK:	bcr	4, %r7			# encoding: [0x07,0x47]
+#CHECK:	blr	%r15			# encoding: [0x07,0x4f]
+
+	bcr	4, %r7
+	blr	%r15
+
+#CHECK:	bcr	5, %r7			# encoding: [0x07,0x57]
+#CHECK:	bnher	%r15			# encoding: [0x07,0x5f]
+
+	bcr	5, %r7
+	bnher	%r15
+
+#CHECK:	bcr	6, %r7			# encoding: [0x07,0x67]
+#CHECK:	blhr	%r15			# encoding: [0x07,0x6f]
+
+	bcr	6, %r7
+	blhr	%r15
+
+#CHECK:	bcr	7, %r7			# encoding: [0x07,0x77]
+#CHECK:	bner	%r15			# encoding: [0x07,0x7f]
+
+	bcr	7, %r7
+	bner	%r15
+
+#CHECK:	bcr	8, %r7			# encoding: [0x07,0x87]
+#CHECK:	ber	%r15			# encoding: [0x07,0x8f]
+
+	bcr	8, %r7
+	ber	%r15
+
+#CHECK:	bcr	9, %r7			# encoding: [0x07,0x97]
+#CHECK:	bnlhr	%r15			# encoding: [0x07,0x9f]
+
+	bcr	9, %r7
+	bnlhr	%r15
+
+#CHECK:	bcr	10, %r7			# encoding: [0x07,0xa7]
+#CHECK:	bher	%r15			# encoding: [0x07,0xaf]
+
+	bcr	10, %r7
+	bher	%r15
+
+#CHECK:	bcr	11, %r7			# encoding: [0x07,0xb7]
+#CHECK:	bnlr	%r15			# encoding: [0x07,0xbf]
+
+	bcr	11, %r7
+	bnlr	%r15
+
+#CHECK:	bcr	12, %r7			# encoding: [0x07,0xc7]
+#CHECK:	bler	%r15			# encoding: [0x07,0xcf]
+
+	bcr	12, %r7
+	bler	%r15
+
+#CHECK:	bcr	13, %r7			# encoding: [0x07,0xd7]
+#CHECK:	bnhr	%r15			# encoding: [0x07,0xdf]
+
+	bcr	13, %r7
+	bnhr	%r15
+
+#CHECK:	bcr	14, %r7			# encoding: [0x07,0xe7]
+#CHECK:	bnor	%r15			# encoding: [0x07,0xef]
+
+	bcr	14, %r7
+	bnor	%r15
+
+#CHECK:	bcr	15, %r7			# encoding: [0x07,0xf7]
 #CHECK: br	%r1                     # encoding: [0x07,0xf1]
 #CHECK: br	%r14                    # encoding: [0x07,0xfe]
 #CHECK: br	%r15                    # encoding: [0x07,0xff]
 
+	bcr	15, %r7
 	br	%r1
 	br	%r14
 	br	%r15
@@ -7854,6 +7945,62 @@
 	stc	%r0, 4095(%r1,%r15)
 	stc	%r0, 4095(%r15,%r1)
 	stc	%r15, 0
+
+#CHECK: stck	0                  	# encoding: [0xb2,0x05,0x00,0x00]
+#CHECK: stck	0(%r1)             	# encoding: [0xb2,0x05,0x10,0x00]
+#CHECK: stck	0(%r15)            	# encoding: [0xb2,0x05,0xf0,0x00]
+#CHECK: stck	4095                 	# encoding: [0xb2,0x05,0x0f,0xff]
+#CHECK: stck	4095(%r1)             	# encoding: [0xb2,0x05,0x1f,0xff]
+#CHECK: stck	4095(%r15)             	# encoding: [0xb2,0x05,0xff,0xff]	
+
+	stck	0
+	stck	0(%r1)
+	stck	0(%r15)
+	stck	4095	
+	stck	4095(%r1)
+	stck	4095(%r15)
+
+#CHECK: stckf	0                  	# encoding: [0xb2,0x7c,0x00,0x00]
+#CHECK: stckf	0(%r1)             	# encoding: [0xb2,0x7c,0x10,0x00]
+#CHECK: stckf	0(%r15)            	# encoding: [0xb2,0x7c,0xf0,0x00]
+#CHECK: stckf	4095                 	# encoding: [0xb2,0x7c,0x0f,0xff]
+#CHECK: stckf	4095(%r1)             	# encoding: [0xb2,0x7c,0x1f,0xff]
+#CHECK: stckf	4095(%r15)             	# encoding: [0xb2,0x7c,0xff,0xff]	
+
+	stckf	0
+	stckf	0(%r1)
+	stckf	0(%r15)
+	stckf	4095	
+	stckf	4095(%r1)
+	stckf	4095(%r15)
+
+#CHECK: stcke	0                  	# encoding: [0xb2,0x78,0x00,0x00]
+#CHECK: stcke	0(%r1)             	# encoding: [0xb2,0x78,0x10,0x00]
+#CHECK: stcke	0(%r15)            	# encoding: [0xb2,0x78,0xf0,0x00]
+#CHECK: stcke	4095                 	# encoding: [0xb2,0x78,0x0f,0xff]
+#CHECK: stcke	4095(%r1)             	# encoding: [0xb2,0x78,0x1f,0xff]
+#CHECK: stcke	4095(%r15)             	# encoding: [0xb2,0x78,0xff,0xff]	
+
+	stcke	0
+	stcke	0(%r1)
+	stcke	0(%r15)
+	stcke	4095	
+	stcke	4095(%r1)
+	stcke	4095(%r15)
+
+#CHECK: stfle	0                  	# encoding: [0xb2,0xb0,0x00,0x00]
+#CHECK: stfle	0(%r1)             	# encoding: [0xb2,0xb0,0x10,0x00]
+#CHECK: stfle	0(%r15)            	# encoding: [0xb2,0xb0,0xf0,0x00]
+#CHECK: stfle	4095                 	# encoding: [0xb2,0xb0,0x0f,0xff]
+#CHECK: stfle	4095(%r1)             	# encoding: [0xb2,0xb0,0x1f,0xff]
+#CHECK: stfle	4095(%r15)             	# encoding: [0xb2,0xb0,0xff,0xff]	
+
+	stfle	0
+	stfle	0(%r1)
+	stfle	0(%r15)
+	stfle	4095	
+	stfle	4095(%r1)
+	stfle	4095(%r15)
 
 #CHECK: stcy	%r0, -524288            # encoding: [0xe3,0x00,0x00,0x00,0x80,0x72]
 #CHECK: stcy	%r0, -1                 # encoding: [0xe3,0x00,0x0f,0xff,0xff,0x72]
