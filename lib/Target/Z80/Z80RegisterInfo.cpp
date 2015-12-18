@@ -31,8 +31,8 @@ typedef enum {
 
 static cl::opt<FrameUseRegister>
 FrameRegister("z80-frame-register",
-  cl::desc("Frame register (IY by default)"),
-  cl::init(IY),
+  cl::desc("Frame register (IX by default)"),
+  cl::init(IX),
   cl::values(
     clEnumValN(IX, "ix", "IX register"),
     clEnumValN(IY, "iy", "IY register"),
@@ -46,7 +46,7 @@ const uint16_t* Z80RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) c
 {
   static const uint16_t CalleeSavedRegs[] = {
     //Z80::BC, Z80::DE, Z80::IX, Z80::IY,
-      Z80::IY,
+      Z80::IX,
     0
   };
   return CalleeSavedRegs;
