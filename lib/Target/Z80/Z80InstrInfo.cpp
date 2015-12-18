@@ -400,7 +400,7 @@ bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
     const TargetRegisterInfo &RI = *MF.getTarget().getRegisterInfo();
     DebugLoc dl = MI->getDebugLoc();
     unsigned Opc, Reg, Imm, FPReg, Idx;
-    unsigned Size = 0;
+    int Size = 0;
     
     switch (MI->getOpcode()) {
         case Z80::LD32ixmr:
