@@ -147,7 +147,8 @@ SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
         InVals.push_back(ArgValue);
         break;
       case MVT::i16:
-        VReg = MRI.createVirtualRegister(&Z80::GR16RegClass);
+        //VReg = MRI.createVirtualRegister(&Z80::GR16RegClass);
+        VReg = MRI.createVirtualRegister(&Z80::BR16RegClass);
         MRI.addLiveIn(VA.getLocReg(), VReg);
         ArgValue = DAG.getCopyFromReg(Chain, dl, VReg, RegVT);
         InVals.push_back(ArgValue);
@@ -1191,17 +1192,20 @@ MachineBasicBlock* Z80TargetLowering::EmitShiftInstr(MachineInstr *MI,
   case Z80::SHL16:
     Opc = Z80::SLA8r;
     Opc2 = Z80::RL8r;
-    RC = &Z80::GR16RegClass;
+    //RC = &Z80::GR16RegClass;
+    RC = &Z80::BR16RegClass;
     break;
   case Z80::LSHR16:
     Opc = Z80::SRL8r;
     Opc2 = Z80::RR8r;
-    RC = &Z80::GR16RegClass;
+    //RC = &Z80::GR16RegClass;
+    RC = &Z80::BR16RegClass;
     break;
   case Z80::ASHR16:
     Opc = Z80::SRA8r;
     Opc2 = Z80::RR8r;
-    RC = &Z80::GR16RegClass;
+    //RC = &Z80::GR16RegClass;
+    RC = &Z80::BR16RegClass;
     break;
   }
 
@@ -1258,7 +1262,8 @@ MachineBasicBlock* Z80TargetLowering::EmitShiftInstr(MachineInstr *MI,
     unsigned RegHi = MRI.createVirtualRegister(&Z80::GR8RegClass);
     unsigned RegLo2 = MRI.createVirtualRegister(&Z80::GR8RegClass);
     unsigned RegHi2 = MRI.createVirtualRegister(&Z80::GR8RegClass);
-    unsigned SupReg = MRI.createVirtualRegister(&Z80::GR16RegClass);
+    //unsigned SupReg = MRI.createVirtualRegister(&Z80::GR16RegClass);
+    unsigned SupReg = MRI.createVirtualRegister(&Z80::BR16RegClass);
     unsigned Idx1 = Z80::subreg_lo;
     unsigned Idx2 = Z80::subreg_hi;
 
