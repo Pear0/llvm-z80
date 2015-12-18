@@ -403,28 +403,28 @@ bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
     unsigned Size = 0;
     
     switch (MI->getOpcode()) {
-        case Z80::LD32xmr:
+        case Z80::LD32ixmr:
             Opc   = Z80::LD8xmr;
             Reg   = MI->getOperand(2).getReg();
             FPReg = MI->getOperand(0).getReg();
             Idx   = MI->getOperand(1).getImm();
             Size = 4;
             break;
-        case Z80::LD64xmr:
+        case Z80::LD64ixmr:
             Opc   = Z80::LD8xmr;
             Reg   = MI->getOperand(2).getReg();
             FPReg = MI->getOperand(0).getReg();
             Idx   = MI->getOperand(1).getImm();
             Size = 8;
             break;
-        case Z80::LD32rxm:
+        case Z80::LD32irxm:
             Opc   = Z80::LD8rxm;
             Reg   = MI->getOperand(0).getReg();
             FPReg = MI->getOperand(1).getReg();
             Idx   = MI->getOperand(2).getImm();
             Size = 4;
             break;
-        case Z80::LD64rxm:
+        case Z80::LD64irxm:
             Opc   = Z80::LD8rxm;
             Reg   = MI->getOperand(0).getReg();
             FPReg = MI->getOperand(1).getReg();
@@ -436,27 +436,23 @@ bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
     }
     
     if (Size > 0) {
-        Z80 Regs[8];
+        unsigned Regs[8]  = {};
         switch(Size) {
             case 4:
-                Regs = {
-                    Z80::subreg32_lo_lo, 
-                    Z80::subreg32_lo_hi,
-                    Z80::subreg32_hi_lo,
-                    Z80::subreg32_hi_hi
-                };
+                Regs[0] = Z80::subreg32_lo_lo; 
+                Regs[1] = Z80::subreg32_lo_hi;
+                Regs[2] = Z80::subreg32_hi_lo;
+                Regs[3] = Z80::subreg32_hi_hi;
                 break;
             case 8:
-                Regs = {
-                    Z80::subreg64_lowest_lo, 
-                    Z80::subreg64_lowest_hi,
-                    Z80::subreg64_low_lo,
-                    Z80::subreg64_low_hi,
-                    Z80::subreg64_high_lo, 
-                    Z80::subreg64_high_hi,
-                    Z80::subreg64_highest_lo,
-                    Z80::subreg64_highest_hi
-                };
+                Regs[0] = Z80::subreg64_lowest_lo; 
+                Regs[1] = Z80::subreg64_lowest_hi;
+                Regs[2] = Z80::subreg64_low_lo;
+                Regs[3] = Z80::subreg64_low_hi;
+                Regs[4] = Z80::subreg64_high_lo; 
+                Regs[5] = Z80::subreg64_high_hi;
+                Regs[6] = Z80::subreg64_highest_lo;
+                Regs[7] = Z80::subreg64_highest_hi;
                 break;
             default:
                 outs() << "Unexpected register size: " << Size << "\n";
