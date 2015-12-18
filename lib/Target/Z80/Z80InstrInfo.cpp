@@ -341,13 +341,13 @@ void Z80InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
   }
   else if (RC == &Z80::GR32RegClass ||
            Z80::GR32RegClass.contains(SrcReg)) {
-    BuildMI(MBB, MI, dl, get(Z80::LD32xmr))
+    BuildMI(MBB, MI, dl, get(Z80::LD32ixmr))
       .addFrameIndex(FrameIndex).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   }
   else if (RC == &Z80::GR64RegClass ||
            Z80::GR64RegClass.contains(SrcReg)) {
-    BuildMI(MBB, MI, dl, get(Z80::LD64xmr))
+    BuildMI(MBB, MI, dl, get(Z80::LD64ixmr))
       .addFrameIndex(FrameIndex).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   }
@@ -377,12 +377,12 @@ void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
   }
   else if (RC == &Z80::GR32RegClass ||
            Z80::GR32RegClass.contains(DestReg)) {
-    BuildMI(MBB, MI, dl, get(Z80::LD32rxm), DestReg)
+    BuildMI(MBB, MI, dl, get(Z80::LD32irxm), DestReg)
       .addFrameIndex(FrameIndex).addImm(0);
   }
   else if (RC == &Z80::GR64RegClass ||
            Z80::GR64RegClass.contains(DestReg)) {
-    BuildMI(MBB, MI, dl, get(Z80::LD64rxm), DestReg)
+    BuildMI(MBB, MI, dl, get(Z80::LD64irxm), DestReg)
       .addFrameIndex(FrameIndex).addImm(0);
   }
   else {
