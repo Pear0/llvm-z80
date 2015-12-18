@@ -101,10 +101,10 @@ def D : Z80Reg<"d", 2>, DwarfRegNum<[3]>;
 def E : Z80Reg<"e", 3>, DwarfRegNum<[4]>;
 def H : Z80Reg<"h", 4>, DwarfRegNum<[5]>;
 def L : Z80Reg<"l", 5>, DwarfRegNum<[6]>;
-def XH : Z80Reg<"xh", 4, 1>, DwarfRegNum<[7]>;
-def XL : Z80Reg<"xl", 5, 1>, DwarfRegNum<[8]>;
-def YH : Z80Reg<"yh", 4, 1>, DwarfRegNum<[9]>;
-def YL : Z80Reg<"yl", 5, 1>, DwarfRegNum<[10]>;
+def XH : Z80Reg<"ixh", 4, 1>, DwarfRegNum<[7]>;
+def XL : Z80Reg<"ixl", 5, 1>, DwarfRegNum<[8]>;
+def YH : Z80Reg<"iyh", 4, 1>, DwarfRegNum<[9]>;
+def YL : Z80Reg<"iyl", 5, 1>, DwarfRegNum<[10]>;
 
 // Flags register
 def FLAGS : Z80Reg<"f">, DwarfRegNum<[11]>;
@@ -130,7 +130,7 @@ def C64 : Z80Reg64WithSubRegs<"bcdehlix", 0, [BC, DE, HL, IX], 4>, DwarfRegNum<[
 //Register classes
 def GR8  : Z80Reg8Class<(add A, B, C, D, E, H, L, XH, XL)>;
 def GR16 : Z80Reg16Class<(add BC, DE, HL, IX, IY)>;
-def BR16 : Z80Reg16Class<(add BC, DE, HL, IX)>;
+def BR16 : Z80Reg16Class<(add BC, DE, HL)>; //Removed IX
 def IR16 : Z80Reg16Class<(add IX, IY)>;
 
 def EXR16 : Z80Reg16Class<(add HL, DE)>;
