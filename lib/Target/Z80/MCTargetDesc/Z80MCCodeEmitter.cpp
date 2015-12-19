@@ -60,7 +60,7 @@ namespace llvm {
     // getBinaryCodeForInstr - tblgen generated function for getting the
     // binary encoding for an instruction.
     uint64_t getBinaryCodeForInstr(const MCInst &MI,
-      SmallVectorImpl<MCFixup> &Fixups) const;
+      SmallVectorImpl<MCFixup> &Fixups, const MCSubtargetInfo &SI) const;
 
     // getMachineOpValue - Return binary encoding of operand.
     unsigned getMachineOpValue(const MCInst &MI, const MCOperand &MO,
@@ -146,9 +146,9 @@ unsigned Z80MCCodeEmitter::getMachineOpValue(const MCInst &MI,
   else if (MO.isExpr())
   {
     if (hasRegPrefix())
-      Fixups.push_back(MCFixup::Create(2, MO.getExpr(), FK_Data_2));
+      Fixups.push_back(MCFixup::create(2, MO.getExpr(), FK_Data_2));
     else
-      Fixups.push_back(MCFixup::Create(1, MO.getExpr(), FK_Data_2));
+      Fixups.push_back(MCFixup::create(1, MO.getExpr(), FK_Data_2));
   }
   return 0;
 }
@@ -160,7 +160,7 @@ unsigned Z80MCCodeEmitter::getBREncoding(const MCInst &MI, unsigned OpNo,
   if (MO.isReg() || MO.isImm()) return getMachineOpValue(MI, MO, Fixups);
 
   // Add a fixup for the branch target.
-  Fixups.push_back(MCFixup::Create(1, MO.getExpr(), FK_PCRel_2));
+  Fixups.push_back(MCFixup::create(1, MO.getExpr(), FK_PCRel_2));
 
   return 0;
 }
