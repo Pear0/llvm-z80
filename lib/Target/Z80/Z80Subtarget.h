@@ -29,8 +29,8 @@ namespace llvm {
     // This constructor initializes the data members to match that
     // of the specified triple.
     //
-    Z80Subtarget(const Triple &TT, const std::string &CPU,
-                 const std::string &FS, TargetMachine &TM);
+    Z80Subtarget(const Triple &TT, StringRef CPU,
+                 StringRef FS, TargetMachine &TM);
     
     
     

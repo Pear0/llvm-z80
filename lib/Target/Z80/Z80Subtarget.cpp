@@ -25,8 +25,8 @@
 
 using namespace llvm;
 
-Z80Subtarget::Z80Subtarget(const Triple &TT, const std::string &CPU,
-                 const std::string &FS, TargetMachine &TM) : 
+Z80Subtarget::Z80Subtarget(const Triple &TT, StringRef CPU,
+                 StringRef FS, TargetMachine &TM) : 
   Z80GenSubtargetInfo(TT, CPU, FS) {
     
     
