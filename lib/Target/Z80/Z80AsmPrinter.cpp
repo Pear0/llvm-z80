@@ -17,6 +17,7 @@
 #include "Z80MCInstLower.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/Support/TargetRegistry.h"
+#include "llvm/MC/MCInst.h"
 using namespace llvm;
 
 void Z80AsmPrinter::EmitInstruction(const MachineInstr *MI)
