@@ -24,7 +24,7 @@ namespace llvm {
   public:
     explicit Z80FrameLowering(const Z80TargetMachine &tm);
 
-    void emitPrologue(MachineFunction &MF) const;
+    void emitPrologue(MachineFunction &MF, MachineBasicBlock &MBB) const;
     void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
 
     void processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
