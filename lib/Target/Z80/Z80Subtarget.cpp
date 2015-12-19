@@ -13,6 +13,9 @@
 
 #include "Z80Subtarget.h"
 #include "Z80.h"
+#include "llvm/ADT/Triple.h"
+#include "llvm/ADT/StringRef.h"
+
 
 #define DEBUG_TYPE "unicode"
 
@@ -22,8 +25,8 @@
 
 using namespace llvm;
 
-Z80Subtarget::Z80Subtarget(const std::string &TT, const std::string &CPU,
-  const std::string &FS) : 
+Z80Subtarget::Z80Subtarget(const Triple &TT, const std::string &CPU,
+                 const std::string &FS, TargetMachine &TM) : 
   Z80GenSubtargetInfo(TT, CPU, FS) {
     
     
