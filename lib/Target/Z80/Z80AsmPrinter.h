@@ -17,12 +17,13 @@
 #include "Z80TargetMachine.h"
 #include "llvm/CodeGen/AsmPrinter.h"
 #include <memory>
+#include <utility>
 
 namespace llvm {
   class Z80AsmPrinter : public AsmPrinter {
   public:
     explicit Z80AsmPrinter(TargetMachine &TM, std::unique_ptr<MCStreamer> Streamer)
-      : AsmPrinter(TM, Streamer) {}
+      : AsmPrinter(TM, std::move(Streamer)) {}
     virtual const char *getPassName() const {
       return "Z80 Assembly Printer";
     }
