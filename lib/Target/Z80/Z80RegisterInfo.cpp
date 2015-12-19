@@ -18,6 +18,8 @@
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Target/TargetSubtargetInfo.h"
+
 
 #define GET_REGINFO_TARGET_DESC
 #include "Z80GenRegisterInfo.inc"
