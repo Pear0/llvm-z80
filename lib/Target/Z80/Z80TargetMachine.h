@@ -24,7 +24,6 @@
 
 namespace llvm {
   class Z80TargetMachine : public LLVMTargetMachine {
-    const DataLayout DL;  // Calculates type size & alignment
     Z80FrameLowering FrameLowering;
     Z80InstrInfo InstrInfo;
     Z80SelectionDAGInfo TSInfo;
@@ -34,7 +33,6 @@ namespace llvm {
     Z80TargetMachine(const Target &T, const Triple &TT, StringRef CPU,
       StringRef FS, const TargetOptions &Options, Reloc::Model RM,
       CodeModel::Model CM, CodeGenOpt::Level OL, bool isKnightOS);
-    virtual const DataLayout *getDataLayout() const { return &DL; }
     virtual const Z80FrameLowering *getFrameLowering() const {
       return &FrameLowering;
     }
