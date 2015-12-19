@@ -22,8 +22,8 @@
 namespace llvm {
   class Z80AsmPrinter : public AsmPrinter {
   public:
-    explicit Z80AsmPrinter(TargetMachine &TM, std::unique_ptr<MCStreamer> Streamer)
-      : AsmPrinter(TM, std::move(Streamer)) {}
+    explicit Z80AsmPrinter(TargetMachine &TM, std::unique_ptr<MCStreamer> Streamer);
+    
     virtual const char *getPassName() const {
       return "Z80 Assembly Printer";
     }

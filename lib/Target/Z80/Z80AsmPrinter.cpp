@@ -20,6 +20,12 @@
 #include "llvm/MC/MCInst.h"
 using namespace llvm;
 
+Z80AsmPrinter::Z80AsmPrinter(TargetMachine& TM, std::unique_ptr<MCStreamer> Streamer): 
+  AsmPrinter(TM, std::move(Streamer)) {
+
+}
+
+
 void Z80AsmPrinter::EmitInstruction(const MachineInstr *MI)
 {
   Z80MCInstLower MCInstLowering(Mang, *MF, *this);
