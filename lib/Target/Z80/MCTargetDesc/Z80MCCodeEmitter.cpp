@@ -60,17 +60,17 @@ namespace llvm {
     // getBinaryCodeForInstr - tblgen generated function for getting the
     // binary encoding for an instruction.
     uint64_t getBinaryCodeForInstr(const MCInst &MI,
-      SmallVectorImpl<MCFixup> &Fixups, const MCSubtargetInfo &SI) const;
+      SmallVectorImpl<MCFixup> &Fixups, const MCSubtargetInfo &STI) const;
 
     // getMachineOpValue - Return binary encoding of operand.
     unsigned getMachineOpValue(const MCInst &MI, const MCOperand &MO,
-      SmallVectorImpl<MCFixup> &Fixups) const;
+      SmallVectorImpl<MCFixup> &Fixups, const MCSubtargetInfo &STI) const;
     // getBREncoding
     unsigned getBREncoding(const MCInst &MI, unsigned OpNo,
-      SmallVectorImpl<MCFixup> &Fixups) const;
+      SmallVectorImpl<MCFixup> &Fixups, const MCSubtargetInfo &STI) const;
     // getXMemOpValue
     unsigned getXMemOpValue(const MCInst &MI, unsigned OpNo,
-      SmallVectorImpl<MCFixup> &Fixups) const;
+      SmallVectorImpl<MCFixup> &Fixups, const MCSubtargetInfo &STI) const;
   }; // end class Z80MCCodeEmitter
 } // end namespace llvm
 
@@ -92,7 +92,7 @@ void Z80MCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
   Z80II::setRegPrefix(TSFlags, getRegPrefix(MI));
 
   EmitPrefix(OS);
-  uint64_t Bits = getBinaryCodeForInstr(MI, Fixups);
+  uint64_t Bits = getBinaryCodeForInstr(MI, Fixups, STI);
 
   switch (TSFlags & Z80II::PrefixMask)
   {
@@ -131,7 +131,7 @@ Z80II::Prefixes Z80MCCodeEmitter::getRegPrefix(const MCInst &MI) const
 }
 
 unsigned Z80MCCodeEmitter::getMachineOpValue(const MCInst &MI,
-  const MCOperand &MO, SmallVectorImpl<MCFixup> &Fixups) const
+  const MCOperand &MO, SmallVectorImpl<MCFixup> &Fixups, const MCSubtargetInfo &STI) const
 {
   if (MO.isReg())
   {
@@ -154,7 +154,7 @@ unsigned Z80MCCodeEmitter::getMachineOpValue(const MCInst &MI,
 }
 
 unsigned Z80MCCodeEmitter::getBREncoding(const MCInst &MI, unsigned OpNo,
-  SmallVectorImpl<MCFixup> &Fixups) const
+  SmallVectorImpl<MCFixup> &Fixups, const MCSubtargetInfo &STI) const
 {
   const MCOperand &MO = MI.getOperand(OpNo);
   if (MO.isReg() || MO.isImm()) return getMachineOpValue(MI, MO, Fixups);
@@ -166,7 +166,7 @@ unsigned Z80MCCodeEmitter::getBREncoding(const MCInst &MI, unsigned OpNo,
 }
 
 unsigned Z80MCCodeEmitter::getXMemOpValue(const MCInst &MI, unsigned OpNo,
-  SmallVectorImpl<MCFixup> &Fixups) const
+  SmallVectorImpl<MCFixup> &Fixups, const MCSubtargetInfo &STI) const
 {
   const MCOperand &MOReg = MI.getOperand(OpNo);
   const MCOperand &MOImm = MI.getOperand(OpNo+1);
