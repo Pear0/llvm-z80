@@ -14,11 +14,3 @@
 #include "Z80TargetMachine.h"
 using namespace llvm;
 
-Z80SelectionDAGInfo::Z80SelectionDAGInfo(const Z80TargetMachine &tm)
-  : TargetSelectionDAGInfo(tm)
-{
-}
-
-Z80SelectionDAGInfo::~Z80SelectionDAGInfo()
-{
-}
