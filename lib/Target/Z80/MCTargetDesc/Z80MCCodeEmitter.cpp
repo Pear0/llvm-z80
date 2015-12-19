@@ -24,13 +24,12 @@ using namespace llvm;
 namespace llvm {
   class Z80MCCodeEmitter : public MCCodeEmitter {
     const MCInstrInfo &MCII;
-    const MCSubtargetInfo &STI;
     MCContext &Ctx;
     mutable uint64_t TSFlags;
   public:
-    Z80MCCodeEmitter(const MCInstrInfo &mcii, const MCSubtargetInfo &sti,
+    Z80MCCodeEmitter(const MCInstrInfo &mcii,
       MCContext &ctx)
-      : MCII(mcii), STI(sti), Ctx(ctx) {}
+      : MCII(mcii), Ctx(ctx) {}
 
     ~Z80MCCodeEmitter() {}
 
@@ -75,9 +74,9 @@ namespace llvm {
 } // end namespace llvm
 
 MCCodeEmitter *llvm::createZ80MCCodeEmitter(const MCInstrInfo &MCII,
-  const MCRegisterInfo &MRI, const MCSubtargetInfo &STI, MCContext &Ctx)
+  const MCRegisterInfo &MRI, MCContext &Ctx)
 {
-  return new Z80MCCodeEmitter(MCII, STI, Ctx);
+  return new Z80MCCodeEmitter(MCII, Ctx);
 }
 
 void Z80MCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,

@@ -68,7 +68,7 @@ namespace {
 
 MCAsmBackend *llvm::createZ80AsmBackend(const Target &T,
                                         const MCRegisterInfo &MRI,
-                                        StringRef TT,
+                                        const Triple &TT,
                                         StringRef CPU)
 {
   return new Z80AsmBackend(T, CPU);

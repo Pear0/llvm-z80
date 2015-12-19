@@ -25,7 +25,7 @@ using namespace llvm;
 //#include "Z80GenInstrInfo.inc"
 
 void Z80KnightInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
-  StringRef Annot)
+  StringRef Annot, const MCSubtargetInfo &STI)
 {
     
     if (MI->getOpcode() == Z80::LD16ri && 

@@ -23,7 +23,7 @@ using namespace llvm;
 #include "Z80GenAsmWriter.inc"
 
 void Z80InstPrinter::printInst(const MCInst *MI, raw_ostream &O,
-  StringRef Annot)
+  StringRef Annot, const MCSubtargetInfo &STI)
 {
   printInstruction(MI, O);
   printAnnotation(O, Annot);

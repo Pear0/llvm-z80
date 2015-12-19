@@ -30,7 +30,7 @@ AsmWriterFlavor("z80-asm-syntax", cl::init(Metal),
              clEnumValN(Knight, "knight", "Emit KnightOS z80 assembly"),
              clEnumValEnd));
 
-Z80MCAsmInfo::Z80MCAsmInfo(StringRef TT)
+Z80MCAsmInfo::Z80MCAsmInfo(const Triple &TT)
 {
     AssemblerDialect = (AsmWriterFlavor == Knight) ? 1 : 0;
     

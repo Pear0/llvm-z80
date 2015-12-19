@@ -38,7 +38,7 @@ static MCInstrInfo *createZ80MCInstrInfo() {
   return X;
 }
 
-static MCRegisterInfo *createZ80MCRegisterInfo(StringRef TT) {
+static MCRegisterInfo *createZ80MCRegisterInfo(const Triple &TT) {
   MCRegisterInfo *X = new MCRegisterInfo();
   InitZ80MCRegisterInfo(X, Z80::PC);
   return X;
@@ -51,16 +51,16 @@ static MCSubtargetInfo *createZ80MCSubtargetInfo(const Triple &TT,
     return createZ80MCSubtargetInfoImpl(TT, CPU, Features);
 }
 
-static MCCodeGenInfo *createZ80MCCodeGenInfo(StringRef TT, Reloc::Model RM,
+static MCCodeGenInfo *createZ80MCCodeGenInfo(const Triple &TT, Reloc::Model RM,
   CodeModel::Model CM, CodeGenOpt::Level OL) {
     MCCodeGenInfo *X = new MCCodeGenInfo();
-    X->InitMCCodeGenInfo(RM, CM, OL);
+    X->initMCCodeGenInfo(RM, CM, OL);
     return X;
 }
 
-static MCInstPrinter *createZ80MCInstPrinter(const Target &T,
+static MCInstPrinter *createZ80MCInstPrinter(const Triple &T,
   unsigned SyntaxVariant, const MCAsmInfo &MAI, const MCInstrInfo &MII,
-  const MCRegisterInfo &MRI, const MCSubtargetInfo &STI)
+  const MCRegisterInfo &MRI)
 {
   if (SyntaxVariant == 0)
       return new Z80InstPrinter(MAI, MII, MRI);
@@ -69,8 +69,7 @@ static MCInstPrinter *createZ80MCInstPrinter(const Target &T,
   return 0;
 }
 
-static MCAsmInfo *createZ80MCAsmInfo(const MCRegisterInfo &MRI, StringRef TT) {
-  Triple TheTriple(TT);
+static MCAsmInfo *createZ80MCAsmInfo(const MCRegisterInfo &MRI, const Triple &TT) {
   
   MCAsmInfo *MAI;
   MAI = new Z80MCAsmInfo(TT);
