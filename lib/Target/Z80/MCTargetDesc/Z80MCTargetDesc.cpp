@@ -44,11 +44,11 @@ static MCRegisterInfo *createZ80MCRegisterInfo(StringRef TT) {
   return X;
 }
 
-static MCSubtargetInfo *createZ80MCSubtargetInfo(StringRef TT, StringRef CPU,
-  StringRef FS) {
-    MCSubtargetInfo *X = new MCSubtargetInfo();
-    InitZ80MCSubtargetInfo(X, TT, CPU, FS);
-    return X;
+static MCSubtargetInfo *createZ80MCSubtargetInfo(const Triple &TT,
+                       StringRef CPU, StringRef Features) {
+    //MCSubtargetInfo *X = new MCSubtargetInfo();
+    //InitZ80MCSubtargetInfo(X, TT, CPU, FS);
+    return createZ80MCSubtargetInfoImpl(TT, CPU, Features);
 }
 
 static MCCodeGenInfo *createZ80MCCodeGenInfo(StringRef TT, Reloc::Model RM,
