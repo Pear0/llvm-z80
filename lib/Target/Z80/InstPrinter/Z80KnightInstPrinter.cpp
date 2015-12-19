@@ -20,7 +20,7 @@
 using namespace llvm;
 
 // Include the auto-generated portion of the assembler writer
-#include "Z80GenAsmWriter.inc"
+#include "Z80GenAsmWriter1.inc"
 //#define GET_INSTRINFO_ENUM
 //#include "Z80GenInstrInfo.inc"
 
