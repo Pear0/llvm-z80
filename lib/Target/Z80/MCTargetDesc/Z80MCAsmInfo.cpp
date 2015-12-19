@@ -39,7 +39,7 @@ Z80MCAsmInfo::Z80MCAsmInfo(StringRef TT)
     
     SeparatorString = "\\";
     CommentString = ";";
-    GlobalPrefix = "C_";
+    //GlobalPrefix = "C_";
     ZeroDirective = "\t.block\t";
     AscizDirective = "\t.asciiz\t"; //Note: asciiz not asciz 
     
