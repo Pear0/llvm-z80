@@ -34,7 +34,7 @@ bool Z80FrameLowering::hasFP(const MachineFunction &MF) const
 
 void Z80FrameLowering::emitPrologue(MachineFunction &MF, MachineBasicBlock &MBB) const
 {
-  MachineBasicBlock &MBB = MF.front();  // Prolog goes into entry BB
+  //MachineBasicBlock &MBB = MF.front();  // Prolog goes into entry BB
   MachineBasicBlock::iterator MBBI = MBB.begin();
   MachineFrameInfo *MFI = MF.getFrameInfo();
   Z80MachineFunctionInfo *Z80FI = MF.getInfo<Z80MachineFunctionInfo>();
