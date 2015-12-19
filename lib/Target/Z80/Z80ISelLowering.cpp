@@ -20,6 +20,7 @@
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/CodeGen/TargetLoweringObjectFileImpl.h"
 #include "llvm/Support/raw_ostream.h"
+#include <iterator>
 using namespace llvm;
 
 Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM, const Z80Subtarget &STI)
@@ -1159,7 +1160,7 @@ MachineBasicBlock* Z80TargetLowering::EmitSelectInstr(MachineInstr *MI,
   
   
   copy1MBB->splice(copy1MBB->begin(), MBB,
-    ++MachineBasicBlock::iterator(MI), MBB->end());
+    std::next(MachineBasicBlock::iterator(MI)), MBB->end());
   copy1MBB->transferSuccessorsAndUpdatePHIs(MBB);
   MBB->addSuccessor(copy0MBB);
   MBB->addSuccessor(copy1MBB);
@@ -1234,7 +1235,7 @@ MachineBasicBlock* Z80TargetLowering::EmitShiftInstr(MachineInstr *MI,
   MF->insert(I, RemMBB);
 
   RemMBB->splice(RemMBB->begin(), MBB,
-    ++MachineBasicBlock::iterator(MI), MBB->end());
+    std::next(MachineBasicBlock::iterator(MI)), MBB->end());
   RemMBB->transferSuccessorsAndUpdatePHIs(MBB);
 
   // Add edges MBB => LoopMBB => RemMBB, MBB => RemMBB, LoopMBB => LoopMBB

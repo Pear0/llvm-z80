@@ -80,6 +80,8 @@ void Z80InstrInfo::copyPhysReg(MachineBasicBlock &MBB,
   llvm_unreachable("Imposible reg-to-reg copy");
 }
 
+
+
 MachineInstr *Z80InstrInfo::commuteInstruction(MachineInstr *MI,
   bool NewMI) const
 {
@@ -198,8 +200,10 @@ bool Z80InstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
       }
 
       // If the block has any instructions after a JP, delete them.
-      while (llvm::next(I) != MBB.end())
-        llvm::next(I)->eraseFromParent();
+      
+      
+      while (std::next(I) != MBB.end())
+        std::next(I)->eraseFromParent();
 
       Cond.clear();
       FBB = 0;
@@ -353,7 +357,7 @@ void Z80InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
   }
   else {
       
-      outs() << "Register Class: " << RC->getName() << "\n";
+      outs() << "Register Class: " << RC->getID() << "\n";
       //outs() << "Register: " << getRegisterInfo().getName(SrcReg) << "\n";
       llvm_unreachable("Can't store this register to stack slot");
   }
@@ -386,7 +390,7 @@ void Z80InstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
       .addFrameIndex(FrameIndex).addImm(0);
   }
   else {
-    outs() << "Register Class: " << RC->getName() << "\n";
+    outs() << "Register Class: " << RC->getID() << "\n";
     //outs() << "Register: " << getRegisterInfo().getName(DestReg) << "\n";
     llvm_unreachable("Can't load this register from stack slot");
   }
@@ -397,7 +401,8 @@ bool Z80InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const
     
     MachineBasicBlock &MBB = *MI->getParent();
     MachineFunction &MF = *MBB.getParent();
-    const TargetRegisterInfo &RI = *MF.getTarget().getRegisterInfo();
+    
+    const TargetRegisterInfo &RI = getRegisterInfo();
     DebugLoc dl = MI->getDebugLoc();
     unsigned Opc, Reg, Imm, FPReg, Idx;
     int Size = 0;
