@@ -12,11 +12,11 @@
 //===----------------------------------------------------------------------===//
 
 #include "Z80RegisterInfo.h"
+#include "Z80FrameLowering.h"
 #include "Z80.h"
 #include "llvm/ADT/BitVector.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
-#include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Target/TargetSubtargetInfo.h"
 
