@@ -21,7 +21,7 @@ extern "C" void LLVMInitializeZ80Target() {
   RegisterTargetMachine<Z80MetalTargetMachine> X(TheZ80Target);
 }
 
-Z80TargetMachine::Z80TargetMachine(const Target &T, StringRef TT, StringRef CPU,
+Z80TargetMachine::Z80TargetMachine(const Target &T, const Triple &TT, StringRef CPU,
   StringRef FS, const TargetOptions &Options, Reloc::Model RM,
   CodeModel::Model CM, CodeGenOpt::Level OL, bool isKnightOS)
   : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
@@ -56,7 +56,7 @@ bool Z80PassConfig::addInstSelector() {
 void Z80MetalTargetMachine::anchor() { }
 
 Z80MetalTargetMachine::Z80MetalTargetMachine(const Target &T,
-                                           StringRef TT, StringRef CPU,
+                                           const Triple &TT, StringRef CPU,
                                            StringRef FS,
                                            const TargetOptions &Options,
                                            Reloc::Model RM,

@@ -31,7 +31,7 @@ namespace llvm {
     Z80Subtarget Subtarget;
     Z80TargetLowering TLInfo;
   public:
-    Z80TargetMachine(const Target &T, StringRef TT, StringRef CPU,
+    Z80TargetMachine(const Target &T, const Triple &TT, StringRef CPU,
       StringRef FS, const TargetOptions &Options, Reloc::Model RM,
       CodeModel::Model CM, CodeGenOpt::Level OL, bool isKnightOS);
     virtual const DataLayout *getDataLayout() const { return &DL; }
@@ -55,7 +55,7 @@ namespace llvm {
   class Z80MetalTargetMachine : public Z80TargetMachine {
     virtual void anchor();
   public:
-    Z80MetalTargetMachine(const Target &T, StringRef TT,
+    Z80MetalTargetMachine(const Target &T, const Triple &TT,
                          StringRef CPU, StringRef FS,
                          const TargetOptions &Options,
                          Reloc::Model RM, CodeModel::Model CM,
