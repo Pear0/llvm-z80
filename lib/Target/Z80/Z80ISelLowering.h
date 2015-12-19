@@ -18,9 +18,10 @@
 #include "llvm/CodeGen/CallingConvLower.h"
 #include "llvm/CodeGen/SelectionDAG.h"
 #include "llvm/Target/TargetLowering.h"
+#include "Z80Subtarget.h"
 
 namespace llvm {
-  class Z80TargetMachine;
+  class Z80TargetMachine, Z80Subtarget;
 
   namespace Z80ISD {
     enum NodeType {

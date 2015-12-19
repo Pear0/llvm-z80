@@ -1147,7 +1147,7 @@ MachineBasicBlock* Z80TargetLowering::EmitSelectInstr(MachineInstr *MI,
   const TargetInstrInfo &TII = *Subtarget->getInstrInfo();
 
   const BasicBlock *LLVM_BB = MBB->getBasicBlock();
-  MachineFunction::iterator I = MBB;
+  MachineFunction::iterator I = &MBB;
   I++;
 
   MachineBasicBlock *thisMBB = MBB;
@@ -1156,9 +1156,10 @@ MachineBasicBlock* Z80TargetLowering::EmitSelectInstr(MachineInstr *MI,
   MachineBasicBlock *copy1MBB = MF->CreateMachineBasicBlock(LLVM_BB);
   MF->insert(I, copy0MBB);
   MF->insert(I, copy1MBB);
-
+  
+  
   copy1MBB->splice(copy1MBB->begin(), MBB,
-    llvm::next(MachineBasicBlock::iterator(MI)), MBB->end());
+    ++MachineBasicBlock::iterator(MI), MBB->end());
   copy1MBB->transferSuccessorsAndUpdatePHIs(MBB);
   MBB->addSuccessor(copy0MBB);
   MBB->addSuccessor(copy1MBB);
@@ -1186,7 +1187,7 @@ MachineBasicBlock* Z80TargetLowering::EmitShiftInstr(MachineInstr *MI,
   MachineFunction *MF = MBB->getParent();
   MachineRegisterInfo &MRI = MF->getRegInfo();
   DebugLoc dl = MI->getDebugLoc();
-  const TargetInstrInfo &TII = *getTargetMachine().getInstrInfo();
+  const TargetInstrInfo &TII = *Subtarget->getInstrInfo();
 
   unsigned Opc, Opc2 = 0;
   const TargetRegisterClass *RC;
@@ -1233,7 +1234,7 @@ MachineBasicBlock* Z80TargetLowering::EmitShiftInstr(MachineInstr *MI,
   MF->insert(I, RemMBB);
 
   RemMBB->splice(RemMBB->begin(), MBB,
-    llvm::next<MachineBasicBlock::iterator>(MI), MBB->end());
+    ++MachineBasicBlock::iterator(MI), MBB->end());
   RemMBB->transferSuccessorsAndUpdatePHIs(MBB);
 
   // Add edges MBB => LoopMBB => RemMBB, MBB => RemMBB, LoopMBB => LoopMBB
