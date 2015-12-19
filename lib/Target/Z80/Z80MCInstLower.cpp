@@ -42,13 +42,13 @@ void Z80MCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const
     case MachineOperand::MO_Register:
       // Ignore all implicit register operands
       if (MO.isImplicit()) continue;
-      MCOp = MCOperand::CreateReg(MO.getReg());
+      MCOp = MCOperand::createReg(MO.getReg());
       break;
     case MachineOperand::MO_Immediate:
-      MCOp = MCOperand::CreateImm(MO.getImm());
+      MCOp = MCOperand::createImm(MO.getImm());
       break;
     case MachineOperand::MO_MachineBasicBlock:
-      MCOp = MCOperand::CreateExpr(MCSymbolRefExpr::Create(
+      MCOp = MCOperand::createExpr(MCSymbolRefExpr::create(
         MO.getMBB()->getSymbol(), Ctx));
       break;
     case MachineOperand::MO_GlobalAddress:
@@ -71,8 +71,8 @@ MCOperand Z80MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
   if (MO.getTargetFlags() != 0)
     llvm_unreachable("Unknown target flag on GV operand");
 
-  const MCExpr *Expr = MCSymbolRefExpr::Create(Sym, Ctx);
-  return MCOperand::CreateExpr(Expr);
+  const MCExpr *Expr = MCSymbolRefExpr::create(Sym, Ctx);
+  return MCOperand::createExpr(Expr);
 }
 
 MCSymbol *Z80MCInstLower::GetGlobalAddressSymbol(
