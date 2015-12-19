@@ -133,7 +133,8 @@ bool Z80DAGToDAGISel::SelectIAddr(SDValue N, SDValue &Addr)
   case ISD::Constant:
     if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(N))
     {
-      Addr = CurDAG->getTargetConstant(CN->getZExtValue(), MVT::i16);
+        
+      Addr = CurDAG->getTargetConstant(CN->getZExtValue(), N, MVT::i16);
       return true;
     }
     break;
