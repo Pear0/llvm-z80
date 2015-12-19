@@ -34,8 +34,8 @@ namespace llvm {
 
     ~Z80MCCodeEmitter() {}
 
-    void EncodeInstruction(const MCInst &MI, raw_ostream &OS,
-      SmallVectorImpl<MCFixup> &Fixups) const;
+    void encodeInstruction(const MCInst &MI, raw_ostream &OS,
+      SmallVectorImpl<MCFixup> &Fixups, const MCSubtargetInfo &STI) const;
     void EmitByte(unsigned char Byte, raw_ostream &OS) const {
       OS << Byte;
     }
@@ -80,8 +80,8 @@ MCCodeEmitter *llvm::createZ80MCCodeEmitter(const MCInstrInfo &MCII,
   return new Z80MCCodeEmitter(MCII, STI, Ctx);
 }
 
-void Z80MCCodeEmitter::EncodeInstruction(const MCInst &MI, raw_ostream &OS,
-  SmallVectorImpl<MCFixup> &Fixups) const
+void Z80MCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
+      SmallVectorImpl<MCFixup> &Fixups, const MCSubtargetInfo &STI) const
 {
   unsigned Opcode = MI.getOpcode();
   const MCInstrDesc &Desc = MCII.get(Opcode);
