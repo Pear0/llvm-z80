@@ -727,6 +727,7 @@ void MCAsmStreamer::EmitValueImpl(const MCExpr *Value, unsigned Size,
     } else {
       EmitIntValue((uint32_t)(Int64Value >> 32), 4);
       EmitIntValue((uint32_t)(Int64Value >> 0 ), 4);
+    }
   }
 
   if (!Directive) {
