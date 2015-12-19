@@ -15,7 +15,7 @@
 #include "Z80MCInstLower.h"
 #include "Z80AsmPrinter.h"
 #include "llvm/MC/MCExpr.h"
-#include "llvm/Target/Mangler.h"
+#include "llvm/IR/Mangler.h"
 using namespace llvm;
 
 Z80MCInstLower::Z80MCInstLower(Mangler *mang, const MachineFunction &mf,
