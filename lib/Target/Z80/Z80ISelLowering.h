@@ -21,8 +21,9 @@
 #include "Z80Subtarget.h"
 
 namespace llvm {
-  class Z80TargetMachine, Z80Subtarget;
-
+  class Z80TargetMachine;
+  class Z80Subtarget;
+  
   namespace Z80ISD {
     enum NodeType {
       FIRST_NUMBER = ISD::BUILTIN_OP_END,
