@@ -704,7 +704,7 @@ void MCAsmStreamer::EmitValueImpl(const MCExpr *Value, unsigned Size,
     // If the target doesn't support 32-bit data, emit as two 16-bit halves.
     if (Directive) break;
     int64_t Int32Value;
-    if (!Value->EvaluateAsAbsolute(Int32Value))
+    if (!Value->evaluateAsAbsolute(Int32Value))
       report_fatal_error("Don't know how to emit this value.");
     if (MAI->isLittleEndian()) {
       EmitIntValue((uint16_t)(Int32Value >> 0 ), 2);
@@ -719,7 +719,7 @@ void MCAsmStreamer::EmitValueImpl(const MCExpr *Value, unsigned Size,
     // If the target doesn't support 64-bit data, emit as two 32-bit halves.
     if (Directive) break;
     int64_t Int64Value;
-    if (!Value->EvaluateAsAbsolute(Int64Value))
+    if (!Value->evaluateAsAbsolute(Int64Value))
       report_fatal_error("Don't know how to emit this value.");
     if (MAI->isLittleEndian()) {
       EmitIntValue((uint32_t)(Int64Value >> 0 ), 4);
