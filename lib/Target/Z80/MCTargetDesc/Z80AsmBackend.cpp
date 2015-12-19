@@ -33,7 +33,7 @@ namespace {
     }
 
     void applyFixup(const MCFixup &Fixup, char *Data, unsigned DataSize,
-      uint64_t Value) const {
+      uint64_t Value, bool IsPCRel) const {
     }
 
     bool mayNeedRelaxation(const MCInst &Inst) const {
@@ -56,10 +56,10 @@ namespace {
       // FIXME: Zero fill for now. That's not right, but at least will get the
       // section size right.
       for (uint64_t i = 0; i < Count; i++)
-        OW->Write8(0);
+        OW->write8(0);
       return true;
     }
-    MCObjectWriter *createObjectWriter(raw_ostream &OS) const {
+    MCObjectWriter *createObjectWriter(raw_pwrite_stream &OS) const {
       // FIXME
       llvm_unreachable("createObjectWriter() unimplemented");
     }
