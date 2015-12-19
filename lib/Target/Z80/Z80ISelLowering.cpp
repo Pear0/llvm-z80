@@ -22,8 +22,8 @@
 #include "llvm/Support/raw_ostream.h"
 using namespace llvm;
 
-Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
-  : TargetLowering(TM, new TargetLoweringObjectFileELF())
+Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM, const Z80Subtarget &STI)
+  : TargetLowering(TM), Subtarget(&STI)
 {
   //Proper integer registers
   addRegisterClass(MVT::i8, &Z80::GR8RegClass);
@@ -37,16 +37,18 @@ Z80TargetLowering::Z80TargetLowering(Z80TargetMachine &TM)
   //addRegisterClass(MVT::f32, &Z80::GR32RegClass);
   //addRegisterClass(MVT::f64, &Z80::GR64RegClass);
   
-  computeRegisterProperties();
+  computeRegisterProperties(TM.getRegisterInfo());
 
   setStackPointerRegisterToSaveRestore(Z80::SP);
 
   setBooleanContents(ZeroOrOneBooleanContent);
-
-  setLoadExtAction(ISD::EXTLOAD, MVT::i8, Expand);
-  setLoadExtAction(ISD::ZEXTLOAD, MVT::i8, Expand);
-  setLoadExtAction(ISD::SEXTLOAD, MVT::i8, Expand);
-
+  
+  for (MVT VT : MVT::integer_valuetypes()) {
+    setLoadExtAction(ISD::EXTLOAD, VT, MVT::i8, Expand);
+    setLoadExtAction(ISD::ZEXTLOAD, VT, MVT::i8, Expand);
+    setLoadExtAction(ISD::SEXTLOAD, VT, MVT::i8, Expand);
+  }
+  
   setTruncStoreAction(MVT::i16, MVT::i8, Expand);
 
   setOperationAction(ISD::LOAD,  MVT::i16, Custom);
@@ -114,7 +116,7 @@ SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
 
   // CCState - info about the registers and stack slot.
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-    getTargetMachine(), ArgLocs, *DAG.getContext());
+     ArgLocs, *DAG.getContext());
 
   // Analyze Formal Arguments
   CCInfo.AnalyzeFormalArguments(Ins, CC_Z80);
@@ -198,7 +200,7 @@ SDValue Z80TargetLowering::LowerFormalArguments(SDValue Chain,
       // from this parameter
       SDValue FIN = DAG.getFrameIndex(FI, MVT::i16);
       InVal = DAG.getLoad(VA.getLocVT(), dl, Chain, FIN,
-        MachinePointerInfo::getFixedStack(FI),
+        MachinePointerInfo::getFixedStack(MF, FI, 0),
         false, false, false, 0);
 
       InVals.push_back(InVal);
@@ -219,7 +221,7 @@ SDValue Z80TargetLowering::LowerReturn(SDValue Chain,
 
   // CCState - Info about the registers and stack slot.
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-    getTargetMachine(), RVLocs, *DAG.getContext());
+    RVLocs, *DAG.getContext());
 
   // Analyze return values.
   CCInfo.AnalyzeReturn(Outs, RetCC_Z80);
@@ -246,7 +248,7 @@ SDValue Z80TargetLowering::LowerReturn(SDValue Chain,
   if (Flag.getNode())
     RetOps.push_back(Flag);
 
-  return DAG.getNode(Z80ISD::RET, dl, MVT::Other, &RetOps[0], RetOps.size());
+  return DAG.getNode(Z80ISD::RET, dl, MVT::Other, RetOps);
 }
 
 SDValue Z80TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
@@ -270,15 +272,16 @@ SDValue Z80TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // Analyze operands of the call, assigning locations to each operand.
   SmallVector<CCValAssign, 16> ArgLocs;
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-    getTargetMachine(), ArgLocs, *DAG.getContext());
+    ArgLocs, *DAG.getContext());
 
   CCInfo.AnalyzeCallOperands(Outs, CC_Z80);
 
   // Get a count of how many bytes are to be pushed on the stack
   unsigned NumBytes = CCInfo.getNextStackOffset();
-
+  
+  
   Chain = DAG.getCALLSEQ_START(Chain, DAG.getConstant(NumBytes,
-    getPointerTy(), true), dl);
+    getPointerTy(DAG.getDataLayout()), true), dl);
 
   SmallVector<std::pair<unsigned, SDValue>, 4> RegsToPass;
   SmallVector<SDValue, 12> MemOpChains;
@@ -314,13 +317,14 @@ SDValue Z80TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     {
       assert(VA.isMemLoc());
 
-      unsigned FP = MF.getTarget().getRegisterInfo()->getFrameRegister(MF);
-
+      unsigned FP = MF.getSubtarget().getRegisterInfo()->getFrameRegister(MF);
+      
+      MVT ptrTy = getPointerTy(DAG.getDataLayout());
       if (StackPtr.getNode() == 0)
-        StackPtr = DAG.getCopyFromReg(Chain, dl, FP, getPointerTy());
+        StackPtr = DAG.getCopyFromReg(Chain, dl, FP, ptrTy);
 
-      SDValue PtrOff = DAG.getNode(ISD::ADD, dl, getPointerTy(),
-        StackPtr, DAG.getIntPtrConstant(VA.getLocMemOffset()));
+      SDValue PtrOff = DAG.getNode(ISD::ADD, dl, ptrTy,
+        StackPtr, DAG.getIntPtrConstant(VA.getLocMemOffset(), dl));
 
       SDValue MemOp;
       ISD::ArgFlagsTy Flags = Outs[i].Flags;
@@ -337,8 +341,7 @@ SDValue Z80TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // Transform all store nodes into one single node because all store nodes are
   // independent of each other.
   if (!MemOpChains.empty())
-    Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
-                        &MemOpChains[0], MemOpChains.size());
+    Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other, MemOpChains);
 
   // Build a sequence of copy-to-reg nodes chained together with token chain and
   // flag operands which copy the outgoing args into registers. The Flag is
@@ -365,10 +368,13 @@ SDValue Z80TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   SmallVector<SDValue, 8> Ops;
   Ops.push_back(Chain);
   Ops.push_back(Callee);
-
+  
+  MachineFunction &MF = DAG.getMachineFunction();
+  
   // Add a register mask operand representing the call-preserved registers.
-  const TargetRegisterInfo *TRI = getTargetMachine().getRegisterInfo();
-  const uint32_t *Mask = TRI->getCallPreservedMask(CallConv);
+  
+  const TargetRegisterInfo *TRI = MF.getSubtarget().getRegisterInfo();
+  const uint32_t *Mask = TRI->getCallPreservedMask(MF, CallConv);
   Ops.push_back(DAG.getRegisterMask(Mask));
 
   // Add argument registers to the end of the list so that they are
@@ -380,13 +386,14 @@ SDValue Z80TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   if (Flag.getNode())
     Ops.push_back(Flag);
 
-  Chain = DAG.getNode(Z80ISD::CALL, dl, NodeTys, &Ops[0], Ops.size());
+  Chain = DAG.getNode(Z80ISD::CALL, dl, NodeTys, Ops);
   Flag = Chain.getValue(1);
-
+  
+  MVT ptrTy = getPointerTy(DAG.getDataLayout());
   // Create the CALLSEQ_END node.
   Chain = DAG.getCALLSEQ_END(Chain,
-    DAG.getConstant(NumBytes, getPointerTy(), true),
-    DAG.getConstant(0, getPointerTy(), true),
+    DAG.getConstant(NumBytes, ptrTy, true),
+    DAG.getConstant(0, ptrTy, true),
     Flag, dl);
 
   Flag = Chain.getValue(1);
@@ -405,7 +412,7 @@ SDValue Z80TargetLowering::LowerCallResult(SDValue Chain, SDValue Flag,
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
   CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-    getTargetMachine(), RVLocs, *DAG.getContext());
+    RVLocs, *DAG.getContext());
   
   
   
@@ -489,7 +496,7 @@ SDValue Z80TargetLowering::LowerZExt(SDValue Op, SelectionDAG &DAG) const
 
   assert(VT == MVT::i16 && "ZExt support only i16");
 
-  SDValue Tmp = DAG.getConstant(0, VT.getHalfSizedIntegerVT(*DAG.getContext()));
+  SDValue Tmp = DAG.getConstant(0, dl, VT.getHalfSizedIntegerVT(*DAG.getContext()));
   SDValue HI  = DAG.getTargetInsertSubreg(Z80::subreg_hi, dl, VT, DAG.getUNDEF(VT), Tmp);
   SDValue LO  = DAG.getTargetInsertSubreg(Z80::subreg_lo, dl, VT, HI, Val);
   return LO;
@@ -632,8 +639,8 @@ SDValue Z80TargetLowering::LowerBinaryOp(SDValue Op, SelectionDAG &DAG) const
   LHS_LO = DAG.getTargetExtractSubreg(Z80::subreg_lo, dl, HalfVT, LHS);
   LHS_HI = DAG.getTargetExtractSubreg(Z80::subreg_hi, dl, HalfVT, LHS);
   if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(RHS)) {
-    RHS_LO = DAG.getConstant(CN->getZExtValue() & 0xFF, HalfVT);
-    RHS_HI = DAG.getConstant(CN->getZExtValue()>>8 & 0xFF, HalfVT);
+    RHS_LO = DAG.getConstant(CN->getZExtValue() & 0xFF, dl, HalfVT);
+    RHS_HI = DAG.getConstant(CN->getZExtValue()>>8 & 0xFF, dl, HalfVT);
   } else {
     RHS_LO = DAG.getTargetExtractSubreg(Z80::subreg_lo, dl, HalfVT, RHS);
     RHS_HI = DAG.getTargetExtractSubreg(Z80::subreg_hi, dl, HalfVT, RHS);
@@ -689,7 +696,7 @@ SDValue Z80TargetLowering::EmitCMP(SDValue &LHS, SDValue &RHS, SDValue &Z80CC,
     break;
   default: llvm_unreachable("Invalid integer condition!");
   }
-  Z80CC = DAG.getConstant(TCC, MVT::i8);
+  Z80CC = DAG.getConstant(TCC, dl, MVT::i8);
 
   if (VT == MVT::i8)
     return DAG.getNode(Z80ISD::CP, dl, MVT::Glue, LHS, RHS);
@@ -732,7 +739,7 @@ SDValue Z80TargetLowering::LowerBrCC(SDValue Op, SelectionDAG &DAG) const
 SDValue Z80TargetLowering::LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const
 {
   SDLoc dl(Op);
-  EVT VT      = getPointerTy();
+  EVT VT      = getPointerTy(DAG.getDataLayout());
 
   const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
   int64_t Offset = cast<GlobalAddressSDNode>(Op)->getOffset();
@@ -759,7 +766,7 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
   default: break;
   case ISD::CopyFromReg:
       if (RegisterSDNode *RN = dyn_cast<RegisterSDNode>(BasePtr.getOperand(1)))
-        if (RN->getReg() != getTargetMachine().getRegisterInfo()->getFrameRegister(
+        if (RN->getReg() != DAG.getMachineFunction().getSubtarget().getRegisterInfo()->getFrameRegister(
           DAG.getMachineFunction()))
           break;
   case ISD::FrameIndex:
@@ -773,8 +780,8 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
       case MVT::i16: {
         SDValue Lo, Hi;
         if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Value)) {
-          Lo = DAG.getConstant(CN->getZExtValue() & 0xFF, MVT::i8);
-          Hi = DAG.getConstant((CN->getZExtValue()>>8) & 0xFF, MVT::i8);
+          Lo = DAG.getConstant(CN->getZExtValue() & 0xFF, dl, MVT::i8);
+          Hi = DAG.getConstant((CN->getZExtValue()>>8) & 0xFF, dl, MVT::i8);
         }
         else {
           Lo = DAG.getTargetExtractSubreg(Z80::subreg_lo, dl, MVT::i8, Value);
@@ -784,7 +791,7 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(1, MVT::i16));
+          DAG.getConstant(1, dl, MVT::i16));
         SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
@@ -793,8 +800,8 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
       case MVT::i32: {
         SDValue Lo, Hi;
         if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Value)) {
-          Lo = DAG.getConstant(CN->getZExtValue() & 0xFFFF, MVT::i16);
-          Hi = DAG.getConstant((CN->getZExtValue()>>16) & 0xFFFF, MVT::i16);
+          Lo = DAG.getConstant(CN->getZExtValue() & 0xFFFF, dl, MVT::i16);
+          Hi = DAG.getConstant((CN->getZExtValue()>>16) & 0xFFFF, dl, MVT::i16);
         }
         else {
           Lo = DAG.getTargetExtractSubreg(Z80::subreg32_lo, dl, MVT::i16, Value);
@@ -804,7 +811,7 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(2, MVT::i16));
+          DAG.getConstant(2, dl, MVT::i16));
         SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
@@ -816,10 +823,10 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
       case MVT::i64: {
         SDValue Lowest, Low, High, Highest;
         if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Value)) {
-          Lowest = DAG.getConstant(CN->getZExtValue() & 0xFFFF, MVT::i16);
-          Low = DAG.getConstant((CN->getZExtValue()>>16) & 0xFFFF, MVT::i16);
-          High = DAG.getConstant((CN->getZExtValue()>>32) & 0xFFFF, MVT::i16);
-          Highest = DAG.getConstant((CN->getZExtValue()>>48) & 0xFFFF, MVT::i16);
+          Lowest = DAG.getConstant(CN->getZExtValue() & 0xFFFF, dl, MVT::i16);
+          Low = DAG.getConstant((CN->getZExtValue()>>16) & 0xFFFF, dl, MVT::i16);
+          High = DAG.getConstant((CN->getZExtValue()>>32) & 0xFFFF, dl, MVT::i16);
+          Highest = DAG.getConstant((CN->getZExtValue()>>48) & 0xFFFF, dl, MVT::i16);
         }
         else {
           Lowest = DAG.getTargetExtractSubreg(Z80::subreg64_lowest, dl, MVT::i16, Value);
@@ -832,19 +839,19 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
           ST->isNonTemporal(), ST->getAlignment());
         
         SDValue LowAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(2, MVT::i16));
+          DAG.getConstant(2, dl, MVT::i16));
         SDValue StoreLow = DAG.getStore(Chain, dl, Low, LowAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
         
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(4, MVT::i16));
+          DAG.getConstant(4, dl, MVT::i16));
         SDValue StoreHigh = DAG.getStore(Chain, dl, High, HighAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
         
         SDValue HighestAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(6, MVT::i16));
+          DAG.getConstant(6, dl, MVT::i16));
         SDValue StoreHighest = DAG.getStore(Chain, dl, Highest, HighestAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
@@ -860,8 +867,8 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
         SDValue Lo, Hi;
         if (ConstantFPSDNode *CN = dyn_cast<ConstantFPSDNode>(Value)) {
           uint64_t val = CN->getValueAPF().bitcastToAPInt().getZExtValue();
-          Lo = DAG.getConstant(val & 0xFFFF, MVT::i16);
-          Hi = DAG.getConstant((val >>16) & 0xFFFF, MVT::i16);
+          Lo = DAG.getConstant(val & 0xFFFF, dl, MVT::i16);
+          Hi = DAG.getConstant((val >>16) & 0xFFFF, dl, MVT::i16);
         }
         else {
           Lo = DAG.getTargetExtractSubreg(Z80::subreg32_lo, dl, MVT::i16, Value);
@@ -871,7 +878,7 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(2, MVT::i16));
+          DAG.getConstant(2, dl, MVT::i16));
         SDValue StoreHigh = DAG.getStore(Chain, dl, Hi, HighAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
@@ -885,10 +892,10 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
         SDValue Lowest, Low, High, Highest;
         if (ConstantFPSDNode *CN = dyn_cast<ConstantFPSDNode>(Value)) {
           uint64_t val = CN->getValueAPF().bitcastToAPInt().getZExtValue();
-          Lowest = DAG.getConstant(val & 0xFFFF, MVT::i16);
-          Low = DAG.getConstant((val>>16) & 0xFFFF, MVT::i16);
-          High = DAG.getConstant((val>>32) & 0xFFFF, MVT::i16);
-          Highest = DAG.getConstant((val>>48) & 0xFFFF, MVT::i16);
+          Lowest = DAG.getConstant(val & 0xFFFF, dl, MVT::i16);
+          Low = DAG.getConstant((val>>16) & 0xFFFF, dl, MVT::i16);
+          High = DAG.getConstant((val>>32) & 0xFFFF, dl, MVT::i16);
+          Highest = DAG.getConstant((val>>48) & 0xFFFF, dl, MVT::i16);
         }
         else {
           Lowest = DAG.getTargetExtractSubreg(Z80::subreg64_lowest, dl, MVT::i16, Value);
@@ -901,19 +908,19 @@ SDValue Z80TargetLowering::LowerStore(SDValue Op, SelectionDAG &DAG) const
           ST->isNonTemporal(), ST->getAlignment());
         
         SDValue LowAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(2, MVT::i16));
+          DAG.getConstant(2, dl, MVT::i16));
         SDValue StoreLow = DAG.getStore(Chain, dl, Low, LowAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
         
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(4, MVT::i16));
+          DAG.getConstant(4, dl, MVT::i16));
         SDValue StoreHigh = DAG.getStore(Chain, dl, High, HighAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
         
         SDValue HighestAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(6, MVT::i16));
+          DAG.getConstant(6, dl, MVT::i16));
         SDValue StoreHighest = DAG.getStore(Chain, dl, Highest, HighestAddr,
           ST->getPointerInfo(), ST->isVolatile(),
           ST->isNonTemporal(), ST->getAlignment());
@@ -957,7 +964,7 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment());
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(1, MVT::i16));
+          DAG.getConstant(1, dl, MVT::i16));
         SDValue Hi = DAG.getLoad(MVT::i8, dl, Chain, HighAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment());
@@ -968,17 +975,19 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
           MVT::i16, DAG.getUNDEF(MVT::i16), Lo);
         SDValue HiRes = DAG.getTargetInsertSubreg(Z80::subreg_hi, dl,
           MVT::i16, LoRes, Hi);
-
-        SDValue Ops[] = { HiRes, NewChain };
+        
+        SmallVector<SDValue, 8> Ops;
+        Ops.push_back(HiRes);
+        Ops.push_back(NewChain);
         outs() << "Lowered " << Op.getSimpleValueType().SimpleTy << ":";
-        return DAG.getMergeValues(Ops, 2, dl);
+        return DAG.getMergeValues(Ops, dl);
       }
       case MVT::i32: {
         SDValue Lo = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment()), DAG);
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(2, MVT::i16));
+          DAG.getConstant(2, dl, MVT::i16));
         SDValue Hi = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment()), DAG);
@@ -990,9 +999,11 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
         SDValue HiRes = DAG.getTargetInsertSubreg(Z80::subreg32_hi, dl,
           MVT::i32, LoRes, Hi);
 
-        SDValue Ops[] = { HiRes, NewChain };
+        SmallVector<SDValue, 8> Ops;
+        Ops.push_back(HiRes);
+        Ops.push_back(NewChain);
         outs() << "Lowered " << Op.getSimpleValueType().SimpleTy << ":";
-        return DAG.getMergeValues(Ops, 2, dl);
+        return DAG.getMergeValues(Ops, dl);
       }
       case MVT::i64: {
         SDValue Lowest = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
@@ -1000,19 +1011,19 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
           LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue LowAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(2, MVT::i16));
+          DAG.getConstant(2, dl, MVT::i16));
         SDValue Low = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, LowAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(4, MVT::i16));
+          DAG.getConstant(4, dl, MVT::i16));
         SDValue High = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue HighestAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(6, MVT::i16));
+          DAG.getConstant(6, dl, MVT::i16));
         SDValue Highest = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighestAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment()), DAG);
@@ -1029,16 +1040,18 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
         SDValue HighestRes = DAG.getTargetInsertSubreg(Z80::subreg64_highest, dl,
           MVT::i64, HighRes, Highest);
 
-        SDValue Ops[] = { HighestRes, NewChain };
+        SmallVector<SDValue, 8> Ops;
+        Ops.push_back(HighestRes);
+        Ops.push_back(NewChain);
         outs() << "Lowered " << Op.getSimpleValueType().SimpleTy << ":";
-        return DAG.getMergeValues(Ops, 2, dl);
+        return DAG.getMergeValues(Ops, dl);
       }
       case MVT::f32: {
         SDValue Lo = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment()), DAG);
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(2, MVT::i16));
+          DAG.getConstant(2, dl, MVT::i16));
         SDValue Hi = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment()), DAG);
@@ -1050,9 +1063,11 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
         SDValue HiRes = DAG.getTargetInsertSubreg(Z80::subreg32_hi, dl,
           MVT::f32, LoRes, Hi);
 
-        SDValue Ops[] = { HiRes, NewChain };
+        SmallVector<SDValue, 8> Ops;
+        Ops.push_back(HiRes);
+        Ops.push_back(NewChain);
         outs() << "Lowered " << Op.getSimpleValueType().SimpleTy << ":";
-        return DAG.getMergeValues(Ops, 2, dl);
+        return DAG.getMergeValues(Ops, dl);
       }
       case MVT::f64: {
         SDValue Lowest = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, BasePtr,
@@ -1060,19 +1075,19 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
           LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue LowAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(2, MVT::i16));
+          DAG.getConstant(2, dl, MVT::i16));
         SDValue Low = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, LowAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue HighAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(4, MVT::i16));
+          DAG.getConstant(4, dl, MVT::i16));
         SDValue High = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment()), DAG);
         
         SDValue HighestAddr = DAG.getNode(ISD::ADD, dl, MVT::i16, BasePtr,
-          DAG.getConstant(6, MVT::i16));
+          DAG.getConstant(6, dl, MVT::i16));
         SDValue Highest = Z80TargetLowering::LowerLoad(DAG.getLoad(MVT::i16, dl, Chain, HighestAddr,
           MachinePointerInfo(), LD->isVolatile(), LD->isNonTemporal(),
           LD->isInvariant(), LD->getAlignment()), DAG);
@@ -1089,9 +1104,11 @@ SDValue Z80TargetLowering::LowerLoad(SDValue Op, SelectionDAG &DAG) const
         SDValue HighestRes = DAG.getTargetInsertSubreg(Z80::subreg64_highest, dl,
           MVT::f64, HighRes, Highest);
 
-        SDValue Ops[] = { HighestRes, NewChain };
+        SmallVector<SDValue, 8> Ops;
+        Ops.push_back(HighestRes);
+        Ops.push_back(NewChain);
         outs() << "Lowered " << Op.getSimpleValueType().SimpleTy << ":";
-        return DAG.getMergeValues(Ops, 2, dl);
+        return DAG.getMergeValues(Ops, dl);
       }
       default:
           llvm_unreachable("Unknown MVT for LowerLoad");
@@ -1126,7 +1143,8 @@ MachineBasicBlock* Z80TargetLowering::EmitSelectInstr(MachineInstr *MI,
   MachineBasicBlock *MBB) const
 {
   DebugLoc dl = MI->getDebugLoc();
-  const TargetInstrInfo &TII = *getTargetMachine().getInstrInfo();
+  
+  const TargetInstrInfo &TII = *Subtarget->getInstrInfo();
 
   const BasicBlock *LLVM_BB = MBB->getBasicBlock();
   MachineFunction::iterator I = MBB;

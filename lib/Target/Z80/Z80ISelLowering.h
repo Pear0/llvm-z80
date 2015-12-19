@@ -37,8 +37,9 @@ namespace llvm {
   } // end namespace Z80ISD
 
   class Z80TargetLowering : public TargetLowering {
+    const Z80Subtarget *Subtarget;
   public:
-    explicit Z80TargetLowering(Z80TargetMachine &TM);
+    explicit Z80TargetLowering(Z80TargetMachine &TM, const Z80Subtarget &STI);
 
     // LowerOperation - Provide custom lowering hooks for some operations.
     virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const;
