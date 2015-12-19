@@ -281,7 +281,7 @@ SDValue Z80TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   
   
   Chain = DAG.getCALLSEQ_START(Chain, DAG.getConstant(NumBytes,
-    getPointerTy(DAG.getDataLayout()), true), dl);
+    dl, getPointerTy(DAG.getDataLayout()), true), dl);
 
   SmallVector<std::pair<unsigned, SDValue>, 4> RegsToPass;
   SmallVector<SDValue, 12> MemOpChains;
@@ -369,7 +369,7 @@ SDValue Z80TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   Ops.push_back(Chain);
   Ops.push_back(Callee);
   
-  MachineFunction &MF = DAG.getMachineFunction();
+  //MachineFunction &MF = DAG.getMachineFunction();
   
   // Add a register mask operand representing the call-preserved registers.
   
@@ -392,8 +392,8 @@ SDValue Z80TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   MVT ptrTy = getPointerTy(DAG.getDataLayout());
   // Create the CALLSEQ_END node.
   Chain = DAG.getCALLSEQ_END(Chain,
-    DAG.getConstant(NumBytes, ptrTy, true),
-    DAG.getConstant(0, ptrTy, true),
+    DAG.getConstant(NumBytes, dl, ptrTy, true),
+    DAG.getConstant(0, dl, ptrTy, true),
     Flag, dl);
 
   Flag = Chain.getValue(1);
@@ -1147,7 +1147,7 @@ MachineBasicBlock* Z80TargetLowering::EmitSelectInstr(MachineInstr *MI,
   const TargetInstrInfo &TII = *Subtarget->getInstrInfo();
 
   const BasicBlock *LLVM_BB = MBB->getBasicBlock();
-  MachineFunction::iterator I = &MBB;
+  MachineFunction::iterator I = MBB->getIterator();
   I++;
 
   MachineBasicBlock *thisMBB = MBB;
@@ -1225,7 +1225,7 @@ MachineBasicBlock* Z80TargetLowering::EmitShiftInstr(MachineInstr *MI,
   }
 
   const BasicBlock *LLVM_BB = MBB->getBasicBlock();
-  MachineFunction::iterator I = MBB;
+  MachineFunction::iterator I = MBB->getIterator();
   I++;
 
   MachineBasicBlock *LoopMBB = MF->CreateMachineBasicBlock(LLVM_BB);
