@@ -117,7 +117,7 @@ bool Z80DAGToDAGISel::SelectXAddr(SDValue N, SDValue &Base, SDValue &Disp)
       else if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>(Op0))
       {
         Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), MVT::i16);
-        Disp = CurDAG->getTargetConstant(CN->getZExtValue(), MVT::i8);
+        Disp = CurDAG->getTargetConstant(CN->getZExtValue(), N, MVT::i8);
         return true;
       }
     }
@@ -134,7 +134,7 @@ bool Z80DAGToDAGISel::SelectIAddr(SDValue N, SDValue &Addr)
     if (ConstantSDNode *CN = dyn_cast<ConstantSDNode>(N))
     {
         
-      Addr = CurDAG->getTargetConstant(CN->getZExtValue(), SDLoc(N), MVT::i16);
+      Addr = CurDAG->getTargetConstant(CN->getZExtValue(), N, MVT::i16);
       return true;
     }
     break;
