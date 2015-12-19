@@ -15,6 +15,7 @@
 #include "Z80MCInstLower.h"
 #include "Z80AsmPrinter.h"
 #include "llvm/MC/MCExpr.h"
+#include "llvm/MC/MCInst.h"
 #include "llvm/IR/Mangler.h"
 using namespace llvm;
 
