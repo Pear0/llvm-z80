@@ -80,7 +80,7 @@ void Z80RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator I,
   MachineInstr &MI = *I;
   MachineBasicBlock &MBB = *MI.getParent();
   MachineFunction &MF = *MBB.getParent();
-  const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
+  const TargetFrameLowering *TFI = MF.getSubtarget().getFrameLowering();
 
   while (!MI.getOperand(i).isFI())
   {
