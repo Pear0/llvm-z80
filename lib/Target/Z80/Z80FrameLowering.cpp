@@ -160,13 +160,13 @@ void Z80FrameLowering::processFunctionBeforeCalleeSavedScan(
   MachineFunction &MF, RegScavenger *RS) const
 {
   llvm_unreachable("Never used");
-  if (hasFP(MF))
+  /*if (hasFP(MF))
   {
       
     unsigned FP = MF.getSubtarget().getRegisterInfo()->getFrameRegister(MF);
     
-    //MF.getRegInfo().setPhysRegUsed(FP);
-  }
+    MF.getRegInfo().setPhysRegUsed(FP);
+  }*/
 }
 
 void Z80FrameLowering::eliminateCallFramePseudoInstr(MachineFunction &MF,

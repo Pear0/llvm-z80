@@ -14,6 +14,8 @@
 #include "Z80Subtarget.h"
 #include "Z80.h"
 
+#define DEBUG_TYPE "unicode"
+
 #define GET_SUBTARGETINFO_TARGET_DESC
 #define GET_SUBTARGETINFO_CTOR
 #include "Z80GenSubtargetInfo.inc"

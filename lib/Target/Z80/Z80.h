@@ -15,6 +15,8 @@
 #ifndef TARGET_Z80_H
 #define TARGET_Z80_H
 
+#define DEBUG_TYPE "unicode"
+
 #include "MCTargetDesc/Z80MCTargetDesc.h"
 #include "llvm/Target/TargetMachine.h"
 
