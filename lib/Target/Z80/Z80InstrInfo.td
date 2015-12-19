@@ -214,7 +214,7 @@ let isBranch = 1, isTerminator = 1 in {
 //===----------------------------------------------------------------------===//
 // Load Instructions.
 //===----------------------------------------------------------------------===//
-let neverHasSideEffects = 1 in
+//let neverHasSideEffects = 1 in
 def LD8rr : IRyRz<0x40, (outs GR8:$dst), (ins GR8:$src),
   "ld\t$dst, $src", []>;
 
