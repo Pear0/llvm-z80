@@ -20,7 +20,7 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/Support/raw_ostream.h"
 
-#define GET_INSTRINFO_CTOR
+#define GET_INSTRINFO_CTOR_DTOR
 #include "Z80GenInstrInfo.inc"
 
 using namespace llvm;
