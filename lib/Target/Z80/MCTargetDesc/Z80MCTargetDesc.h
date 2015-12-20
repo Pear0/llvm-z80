@@ -29,7 +29,7 @@ namespace llvm {
 
   MCCodeEmitter *createZ80MCCodeEmitter(const MCInstrInfo &MCII,
     const MCRegisterInfo &MRI, MCContext &Ctx);
-  MCAsmBackend *createZ80AsmBackend(const Target &T, const MCRegisterInfo &MRI, const Triple1 &TT, StringRef CPU);
+  MCAsmBackend *createZ80AsmBackend(const Target &T, const MCRegisterInfo &MRI, const Triple &TT, StringRef CPU);
 } // end namespace llvm
 
 #define GET_REGINFO_ENUM
