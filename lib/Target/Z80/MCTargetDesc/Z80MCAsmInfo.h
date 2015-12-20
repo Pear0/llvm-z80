@@ -19,6 +19,7 @@
 namespace llvm {
   class StringRef;
   class Target;
+  class Triple;
 
   class Z80MCAsmInfo : public MCAsmInfo {
   public:

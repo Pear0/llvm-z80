@@ -14,8 +14,6 @@
 #ifndef Z80MCTARGETDESC_H
 #define Z80MCTARGETDESC_H
 
-#include "llvm/ADT/Triple.h"
-
 namespace llvm {
   class MCAsmBackend;
   class MCCodeEmitter;
@@ -25,6 +23,7 @@ namespace llvm {
   class MCSubtargetInfo;
   class Target;
   class StringRef;
+  class Triple;
 
   extern Target TheZ80Target;
   extern Target TheZ80KnightOSTarget;
