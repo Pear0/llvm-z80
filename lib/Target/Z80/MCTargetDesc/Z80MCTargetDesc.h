@@ -28,8 +28,8 @@ namespace llvm {
   extern Target TheZ80KnightOSTarget;
 
   MCCodeEmitter *createZ80MCCodeEmitter(const MCInstrInfo &MCII,
-    const MCRegisterInfo &MRI, const MCSubtargetInfo &STI, MCContext &Ctx);
-  MCAsmBackend *createZ80AsmBackend(const Target &T, const MCRegisterInfo &MRI, StringRef TT, StringRef CPU);
+    const MCRegisterInfo &MRI, MCContext &Ctx);
+  MCAsmBackend *createZ80AsmBackend(const Target &T, const MCRegisterInfo &MRI, const Triple1 &TT, StringRef CPU);
 } // end namespace llvm
 
 #define GET_REGINFO_ENUM
