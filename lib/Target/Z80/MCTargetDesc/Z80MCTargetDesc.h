@@ -14,6 +14,8 @@
 #ifndef Z80MCTARGETDESC_H
 #define Z80MCTARGETDESC_H
 
+#include "llvm/ADT/Triple.h"
+
 namespace llvm {
   class MCAsmBackend;
   class MCCodeEmitter;
